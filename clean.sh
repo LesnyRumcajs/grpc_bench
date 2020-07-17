@@ -1,14 +1,14 @@
 #!/bin/sh
 
-docker rmi \
+docker image remove \
     infoblox/ghz:0.0.1 \
     rust:1.44.1-stretch \
-    rust_tonic_test \
+    rust_tonic \
     golang:1.14 \
-    go_grpc_test \
+    go_grpc \
     gcc:10 \
-    cpp_grpc_test \
+    cpp_grpc \
     ruby:2.7-buster \
-    ruby_grpc_test \
+    ruby_grpc \
     python:3-slim \
-    python_grpc_test
+    python_grpc

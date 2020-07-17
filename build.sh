@@ -1,11 +1,16 @@
 #!/bin/sh
 
-docker build --force-rm -f rust_tonic/Dockerfile -t rust_tonic_test .
-
-docker build --force-rm -f go_grpc/Dockerfile -t go_grpc_test .
-
-docker build --force-rm -f cpp_grpc/Dockerfile -t cpp_grpc_test .
-
-docker build --force-rm -f ruby_grpc/Dockerfile -t ruby_grpc_test .
-
-docker build --force-rm -f python_grpc/Dockerfile -t python_grpc_test .
+for benchmark in rust_tonic go_grpc cpp_grpc ruby_grpc python_grpc; do
+	echo "==> Building ${benchmark} Docker image..."
+	((
+		DOCKER_BUILDKIT=1 docker image build --force-rm \
+		--file ${benchmark}/Dockerfile --tag ${benchmark} . \
+		> ${benchmark}.log 2>&1 && \
+		echo "==> Done building ${benchmark}" && \
+		rm -f ${benchmark}.log
+	) || (
+		echo "==> Error building ${benchmark}"
+		echo "    See ${benchmark}.log for more details..."
+	)) &
+done
+wait
