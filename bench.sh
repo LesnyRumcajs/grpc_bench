@@ -12,3 +12,6 @@
 
 # Ruby benchmark
 ./run_single_bench.sh ruby_grpc_test
+
+# Python grpc benchmark
+./run_single_bench.sh python_grpc_test

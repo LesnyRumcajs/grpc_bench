@@ -9,4 +9,6 @@ docker rmi \
     gcc:10 \
     cpp_grpc_test \
     ruby:2.7-buster \
-    ruby_grpc_test
+    ruby_grpc_test \
+    python:3-slim \
+    python_grpc_test
