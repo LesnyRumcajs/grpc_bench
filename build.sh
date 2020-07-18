@@ -15,3 +15,5 @@ docker build --force-rm -f scala_akka/Dockerfile -t scala_akka_test .
 docker build --force-rm -f java_grpc/Dockerfile -t java_grpc_test .
 
 docker build --force-rm -f kotlin_grpc/Dockerfile -t kotlin_grpc_test .
+
+docker build --force-rm -f crystal_grpc/Dockerfile -t crystal_grpc_test .
