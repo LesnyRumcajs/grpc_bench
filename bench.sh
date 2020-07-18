@@ -17,6 +17,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Python grpc benchmark
 ./run_single_bench.sh python_grpc_test "${RESULT_DIR}"
 
+# Scala akka benchmark
+./run_single_bench.sh scala_akka_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 
