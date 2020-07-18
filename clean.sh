@@ -11,4 +11,6 @@ docker rmi \
     ruby:2.7-buster \
     ruby_grpc_test \
     python:3-slim \
-    python_grpc_test
+    python_grpc_test \
+    hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12 \
+    scala_akka_test
