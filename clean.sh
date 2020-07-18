@@ -16,4 +16,6 @@ docker rmi \
     scala_akka_test \
     openjdk:8-jdk \
     java_grpc_test \
-    kotlin_grpc_test
+    kotlin_grpc_test \
+    google/dart \
+    dart_grpc_test
