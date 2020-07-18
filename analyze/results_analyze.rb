@@ -19,7 +19,7 @@ results = []
 files = Dir.glob("#{report_directory}/*.report")
 files.each do |file|
   total_time = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
-  ok_responses = File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
+  ok_responses = File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f rescue 0
   average_response_time = File.read(file).scan(/Average:\s*((?:\d|\.)+)/)[0][0].to_f
   results << TestResult.new(File.basename(file), total_time, ok_responses, average_response_time)
 end
