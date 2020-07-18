@@ -18,4 +18,5 @@ docker rmi \
     java_grpc_test \
     kotlin_grpc_test \
     google/dart \
-    dart_grpc_test
+    dart_grpc_test \
+    java_micronaut_test
