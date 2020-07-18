@@ -13,4 +13,6 @@ docker rmi \
     python:3-slim \
     python_grpc_test \
     hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12 \
-    scala_akka_test
+    scala_akka_test \
+    openjdk:8-jdk \
+    java_grpc_test

@@ -11,3 +11,5 @@ docker build --force-rm -f ruby_grpc/Dockerfile -t ruby_grpc_test .
 docker build --force-rm -f python_grpc/Dockerfile -t python_grpc_test .
 
 docker build --force-rm -f scala_akka/Dockerfile -t scala_akka_test .
+
+docker build --force-rm -f java_grpc/Dockerfile -t java_grpc_test .
