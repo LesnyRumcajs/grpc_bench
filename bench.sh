@@ -23,6 +23,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Java grpc benchmark
 ./run_single_bench.sh java_grpc_test "${RESULT_DIR}"
 
+# Kotlin grpc benchmark
+./run_single_bench.sh kotlin_grpc_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 
