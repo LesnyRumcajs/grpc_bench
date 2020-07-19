@@ -27,4 +27,6 @@ docker rmi \
     python:3.9-rc \
     lua_grpc_test \
     node:stretch-slim \
-    node_grpc_test
+    node_grpc_test \
+    php:zts-buster \
+    php_grpc_test
