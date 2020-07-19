@@ -1,4 +1,4 @@
-FROM crystallang/crystal:latest
+FROM crystallang/crystal:0.35.1
 
 WORKDIR /app
 COPY crystal_grpc /app
@@ -13,4 +13,5 @@ RUN mkdir -p src/protobufs && protoc -I proto \
     --plugin=protoc-gen-crystal=bin/protoc-gen-crystal \
     proto/helloworld/helloworld.proto
 
-ENTRYPOINT crystal src/server.cr
+RUN crystal build src/server.cr --release -o bin/server
+ENTRYPOINT bin/server
