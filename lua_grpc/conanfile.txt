@@ -1,0 +1,7 @@
+[requires]
+grpc_cb_core/0.1@jinq0123/testing
+lua-cpp/5.3.4@jinq0123/testing
+lua-intf/0.1@jinq0123/testing
+
+[generators]
+cmake
