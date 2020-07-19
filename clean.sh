@@ -23,4 +23,6 @@ docker rmi \
     swift:5.2 \
     swift_grpc_test \
     python:3.9-rc \
-    lua_grpc_test
+    lua_grpc_test \
+    dlang2/dmd-ubuntu:2.092.1 \
+    d_grpc_test

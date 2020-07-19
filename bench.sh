@@ -38,6 +38,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Lua grpc benchmark
 ./run_single_bench.sh lua_grpc_test "${RESULT_DIR}"
 
+# D grpc benchmark
+./run_single_bench.sh d_grpc_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 
