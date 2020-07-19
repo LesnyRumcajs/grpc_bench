@@ -25,4 +25,6 @@ docker rmi \
     swift:5.2 \
     swift_grpc_test \
     python:3.9-rc \
-    lua_grpc_test
+    lua_grpc_test \
+    node:stretch-slim \
+    node_grpc_test
