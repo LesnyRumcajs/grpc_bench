@@ -29,6 +29,18 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Crystal grpc benchmark
 ./run_single_bench.sh crystal_grpc_test "${RESULT_DIR}"
 
+# Dart grpc benchmark
+./run_single_bench.sh dart_grpc_test "${RESULT_DIR}"
+
+# Java Micronaut benchmark
+./run_single_bench.sh java_micronaut_test "${RESULT_DIR}"
+
+# Swift grpc benchmark
+./run_single_bench.sh swift_grpc_test "${RESULT_DIR}"
+
+# Lua grpc benchmark
+./run_single_bench.sh lua_grpc_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 

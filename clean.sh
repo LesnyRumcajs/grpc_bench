@@ -18,4 +18,11 @@ docker rmi \
     crystal_grpc_test \
     crystallang/crystal:0.35.1 \
     java_grpc_test \
-    kotlin_grpc_test
+    kotlin_grpc_test \
+    google/dart \
+    dart_grpc_test \
+    java_micronaut_test \
+    swift:5.2 \
+    swift_grpc_test \
+    python:3.9-rc \
+    lua_grpc_test

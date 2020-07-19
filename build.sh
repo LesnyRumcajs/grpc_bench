@@ -17,3 +17,12 @@ docker build --force-rm -f java_grpc/Dockerfile -t java_grpc_test .
 docker build --force-rm -f kotlin_grpc/Dockerfile -t kotlin_grpc_test .
 
 docker build --force-rm -f crystal_grpc/Dockerfile -t crystal_grpc_test .
+
+docker build --force-rm -f dart_grpc/Dockerfile -t dart_grpc_test .
+
+docker build --force-rm -f java_micronaut/Dockerfile -t java_micronaut_test .
+
+docker build --force-rm -f swift_grpc/Dockerfile -t swift_grpc_test .
+
+docker build --force-rm -f lua_grpc/Dockerfile -t lua_grpc_test .
+

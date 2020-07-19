@@ -1,0 +1,106 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "net.ltgt.apt-eclipse" version "0.18"
+    id "net.ltgt.apt-idea" version "0.18"
+//   tag::plugin[]
+    id 'com.google.protobuf' version '0.8.12'
+//   end::plugin[]
+    id "application"
+    id "java"
+}
+
+version "0.1"
+group "helloworld"
+
+
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+ext {
+    micronautVersion = "2.0.0.M3"
+    micronautGrpcVersion = "2.0.0.M3"
+}
+
+configurations {
+    all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            String group = details.requested.group
+            if(group == 'io.micronaut.grpc') {
+                details.useVersion(micronautGrpcVersion)
+            }
+        }
+    }
+}
+
+dependencies {
+    annotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    testAnnotationProcessor(platform("io.micronaut:micronaut-bom:$micronautVersion"))
+    implementation(platform("io.micronaut:micronaut-bom:$micronautVersion"))    
+
+    annotationProcessor("io.micronaut:micronaut-inject-java")
+    annotationProcessor("io.micronaut:micronaut-validation")
+    
+    compileOnly "io.micronaut:micronaut-inject-java"
+    implementation "io.micronaut:micronaut-inject"
+    implementation "io.micronaut:micronaut-validation"
+    implementation "io.micronaut:micronaut-runtime"
+    
+    implementation "io.micronaut.grpc:micronaut-grpc-runtime"
+
+    implementation "io.micronaut:micronaut-discovery-client"
+    runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
+
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    testAnnotationProcessor "io.micronaut:micronaut-validation"
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation 'io.micronaut.test:micronaut-test-junit5'
+    testImplementation "org.mockito:mockito-junit-jupiter:2.22.0"
+    testImplementation "io.micronaut:micronaut-inject-java"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1')
+
+mainClassName = "helloworld.Application"
+tasks.withType(JavaCompile){
+    options.encoding = "UTF-8"
+    options.compilerArgs.add('-parameters')
+}
+
+// tag::config[]
+ext {
+    protocVersion="3.12.2"
+    grpcVersion="1.30.0"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+// end::config[]
