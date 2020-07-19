@@ -21,4 +21,6 @@ docker rmi \
     dart_grpc_test \
     java_micronaut_test \
     swift:5.2 \
-    swift_grpc_test
+    swift_grpc_test \
+    python:3.9-rc \
+    lua_grpc_test
