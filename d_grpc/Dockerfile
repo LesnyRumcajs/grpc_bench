@@ -1,4 +1,4 @@
-FROM dlang2/dmd-ubuntu:2.092.1
+FROM dlang2/ldc-ubuntu:1.22.0
 
 RUN apt update && apt install -y protobuf-compiler git cmake g++
 
