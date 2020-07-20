@@ -1,0 +1,15 @@
+grpc:
+  listen: "tcp://:50051"
+  proto: "proto/helloworld/helloworld.proto"
+  workers:
+    command: "php worker.php"
+    pool:
+      numWorkers: 4
+
+limit:
+  interval: 1
+  services:
+    grpc:
+      TTL: 0
+      idleTTL: 0
+      execTTL: 60
