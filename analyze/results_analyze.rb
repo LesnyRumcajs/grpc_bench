@@ -20,11 +20,16 @@ files = Dir.glob("#{report_directory}/*.report")
 files.each do |file|
   total_time = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
   ok_responses = File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f rescue 0
-  average_response_time = File.read(file).scan(/Average:\s*((?:\d|\.)+)/)[0][0].to_f
+  average_response_time = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
   results << TestResult.new(File.basename(file), total_time, ok_responses, average_response_time)
 end
 
-puts 'Results (successful requests per second)'
+make_horizontal_line = -> { puts '-'*50 }
+make_data_line = -> (x,y,z) { puts "| #{x.to_s.ljust(20)}|#{y.to_s.rjust(8)} |#{z.to_s.rjust(15)} |" }
+make_horizontal_line[]
+make_data_line['name', 'req/s', 'avg. latency']
+make_horizontal_line[]
 results.sort_by(&:req_per_second).reverse_each do |result|
-  puts result
+    make_data_line[result.name, result.req_per_second, result.average_response_time]
 end
+make_horizontal_line[]

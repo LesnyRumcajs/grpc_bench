@@ -9,10 +9,6 @@ class TestResult
     @average_response_time = average_response_time
   end
 
-  def to_s
-      "#{@name.ljust(15)}: #{@req_per_second}"
-  end
-
   private
 
   def calculate_req_per_second(ok_responses, total_time)
