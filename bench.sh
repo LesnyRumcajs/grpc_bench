@@ -47,6 +47,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # PHP benchmark
 ./run_single_bench.sh php_grpc_test "${RESULT_DIR}"
 
+# C# benchmark
+./run_single_bench.sh csharp_grpc_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 

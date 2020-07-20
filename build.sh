@@ -29,3 +29,5 @@ docker build --force-rm -f lua_grpc/Dockerfile -t lua_grpc_test .
 docker build --force-rm -f node_grpc/Dockerfile -t node_grpc_test .
 
 docker build --force-rm -f php_grpc/Dockerfile -t php_grpc_test .
+
+docker build --force-rm -f csharp_grpc/Dockerfile -t csharp_grpc_test .
