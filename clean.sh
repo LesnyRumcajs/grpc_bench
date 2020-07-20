@@ -29,4 +29,6 @@ docker rmi \
     node:stretch-slim \
     node_grpc_test \
     php:zts-buster \
-    php_grpc_test
+    php_grpc_test \
+    mcr.microsoft.com/dotnet/core/sdk:3.1 \
+    csharp_grpc_test
