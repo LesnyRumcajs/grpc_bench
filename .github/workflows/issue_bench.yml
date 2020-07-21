@@ -9,6 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.event.issue.title, 'RUN BENCHMARK')
     steps:
+    - name: Accept the task
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        body: |
+          Serving the benchmark. I will update the issue when it's finished. 
     - uses: actions/checkout@v2
     - name: Build images
       run: ./build.sh
@@ -21,7 +26,8 @@ jobs:
       uses: peter-evans/close-issue@v1
       with:
         comment: |
-          Here you!
+          Here you go!
           ```
           ${{ steps.run_bench.outputs.results }}
           ```
+          
