@@ -10,16 +10,18 @@ jobs:
     if: startsWith(github.event.issue.title, 'RUN BENCHMARK')
     steps:
     - uses: actions/checkout@v2
-    - name: build-images
+    - name: Build images
       run: ./build.sh
-    - name: run-benchmarks
-      run: echo "##[set-output name=results;]$(./bench.sh)"
+    - name: Run tests
+      id: run_bench
+      run: echo "::set-output name=results::$(./bench.sh)\n"
       env:
         GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
     - name: Close Issue
       uses: peter-evans/close-issue@v1
       with:
         comment: |
+          Here you!
           ```
-          ${{ steps.run-benchmarks.outputs.results }}
+          ${{ steps.run_bench.outputs.results }}
           ```
