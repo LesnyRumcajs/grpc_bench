@@ -1,0 +1,22 @@
+name: Run benchmarks
+
+on:
+  issues:
+    types: [opened]
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.issue.title, 'RUN BENCHMARK')
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the test images
+      run: ./build.sh
+    - name: Run the benchmarks
+      run: ./bench.sh
+      env:
+        GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
+    - name: Close Issue
+      uses: peter-evans/close-issue@v1
+      with:
+        comment: 'Benchmark served'
