@@ -22,7 +22,11 @@ jobs:
       id: run_bench
       run: |
         ./bench.sh | tee bench.results
-        echo "::set-output name=results::$(cat bench.results)\n"
+        REPORT=$(cat bench.results)
+        REPORT="${REPORT//'%'/'%25'}"
+        REPORT="${REPORT//$'\n'/'%0A'}"
+        REPORT="${REPORT//$'\r'/'%0D'}"
+        echo "::set-env name=results::$REPORT"
       env:
         GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
     - name: Close Issue
