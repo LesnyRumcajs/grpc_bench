@@ -31,4 +31,6 @@ docker rmi \
     php:zts-buster \
     php_grpc_test \
     mcr.microsoft.com/dotnet/core/sdk:3.1 \
-    csharp_grpc_test
+    csharp_grpc_test \
+    elixir:slim \
+    elixir_grpc_test
