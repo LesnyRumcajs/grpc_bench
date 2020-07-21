@@ -12,6 +12,7 @@ jobs:
     - name: Accept the task
       uses: peter-evans/create-or-update-comment@v1
       with:
+        issue-id: ${{ github.event.issue.id }}  
         body: |
           Serving the benchmark. I will update the issue when it's finished. 
     - uses: actions/checkout@v2
