@@ -13,10 +13,11 @@ jobs:
     - name: Build the test images
       run: ./build.sh
     - name: Run the benchmarks
-      run: ./bench.sh
+      run: echo "##[set-output name=results;]$(./bench.sh)"
       env:
         GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
     - name: Close Issue
       uses: peter-evans/close-issue@v1
       with:
-        comment: 'Benchmark served'
+        comment: |
+          ${{ steps.build_package.outputs.results }}
