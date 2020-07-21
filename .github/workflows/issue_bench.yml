@@ -20,7 +20,9 @@ jobs:
       run: ./build.sh
     - name: Run tests
       id: run_bench
-      run: echo "::set-output name=results::$(./bench.sh)\n"
+      run: |
+        ./bench.sh | tee bench.results
+        echo "::set-output name=results::$(cat bench.results)\n"
       env:
         GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
     - name: Close Issue
