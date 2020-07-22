@@ -5,6 +5,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Rust Tonic benchmark
 ./run_single_bench.sh rust_tonic_test "${RESULT_DIR}"
 
+# Rust Thruster benchmark
+./run_single_bench.sh rust_thruster_test "${RESULT_DIR}"
+
 # Go grpc benchmark
 ./run_single_bench.sh go_grpc_test "${RESULT_DIR}"
 
