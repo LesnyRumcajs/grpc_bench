@@ -22,7 +22,7 @@ jobs:
       id: run_bench
       run: |
         ./bench.sh | tee bench.results
-        REPORT=$(cat bench.results)
+        REPORT="$(cat bench.results)"
         REPORT="${REPORT//'%'/'%25'}"
         REPORT="${REPORT//$'\n'/'%0A'}"
         REPORT="${REPORT//$'\r'/'%0D'}"
