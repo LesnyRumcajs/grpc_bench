@@ -56,6 +56,9 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 # Elixir benchmark
 ./run_single_bench.sh elixir_grpc_test "${RESULT_DIR}"
 
+# Java AoT benchmark
+./run_single_bench.sh java_aot_test "${RESULT_DIR}"
+
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
 
