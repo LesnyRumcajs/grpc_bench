@@ -5,7 +5,8 @@ authors = ["LesnyRumcajs <lesny.rumcajs@gmail.com>"]
 edition = "2018"
 
 [profile.release]
-opt-level = 'z'
+opt-level = 3
+codegen-units = 1
 lto = true
 
 [dependencies]
