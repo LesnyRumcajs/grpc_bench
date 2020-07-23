@@ -2,6 +2,8 @@
 
 docker build --force-rm -f rust_tonic/Dockerfile -t rust_tonic_test .
 
+docker build --force-rm -f rust_tonic_st/Dockerfile -t rust_tonic_st_test .
+
 docker build --force-rm -f rust_thruster/Dockerfile -t rust_thruster_test .
 
 docker build --force-rm -f go_grpc/Dockerfile -t go_grpc_test .

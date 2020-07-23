@@ -1,0 +1,22 @@
+[package]
+name = "rust_tonic"
+version = "0.1.0"
+authors = ["LesnyRumcajs <lesny.rumcajs@gmail.com>"]
+edition = "2018"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[dependencies]
+tonic = "0.3"
+prost = "0.6.1"
+tokio = { version = "0.2", features = ["macros", "tcp", "dns", "io-util"] }
+
+[build-dependencies]
+tonic-build = "0.3"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/main.rs"
