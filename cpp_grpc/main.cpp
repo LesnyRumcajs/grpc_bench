@@ -45,7 +45,8 @@ class ServerImpl final {
   ~ServerImpl() {
     server_->Shutdown();
     // Always shutdown the completion queue after the server.
-    cq_->Shutdown();
+    for (auto& cq : cq_)
+      cq->Shutdown();
 
     for (auto& thread : server_threads_) {
       if (thread.joinable())
@@ -65,14 +66,17 @@ class ServerImpl final {
     builder.RegisterService(&service_);
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
-    cq_ = builder.AddCompletionQueue();
+    auto parallelism = std::max(1u, std::thread::hardware_concurrency() / 4);
+    for (int i = 0; i < parallelism; i++) {
+      cq_.emplace_back(builder.AddCompletionQueue());
+    }
     // Finally assemble the server.
     server_ = builder.BuildAndStart();
     std::cout << "Server listening on " << server_address << std::endl;
 
     // Proceed to the server's main loop.
-    for (int i = 0; i < std::thread::hardware_concurrency(); i++) {
-      server_threads_.emplace_back(std::thread([this] { this->HandleRpcs(); }));
+    for (int i = 0; i < parallelism; i++) {
+      server_threads_.emplace_back(std::thread([this, i] { this->HandleRpcs(i); }));
     }
 
     for (;;) {}
@@ -149,9 +153,9 @@ class ServerImpl final {
   };
 
   // This can be run in multiple threads if needed.
-  void HandleRpcs() {
+  void HandleRpcs(int i) {
     // Spawn a new CallData instance to serve new clients.
-    new CallData(&service_, cq_.get());
+    new CallData(&service_, cq_[i].get());
     void* tag;  // uniquely identifies a request.
     bool ok;
     while (true) {
@@ -160,13 +164,13 @@ class ServerImpl final {
       // memory address of a CallData instance.
       // The return value of Next should always be checked. This return value
       // tells us whether there is any kind of event or cq_ is shutting down.
-      GPR_ASSERT(cq_->Next(&tag, &ok));
+      GPR_ASSERT(cq_[i]->Next(&tag, &ok));
       // GPR_ASSERT(ok);
       static_cast<CallData*>(tag)->Proceed();
     }
   }
 
-  std::unique_ptr<ServerCompletionQueue> cq_;
+  std::vector<std::unique_ptr<ServerCompletionQueue>> cq_;
   Greeter::AsyncService service_;
   std::unique_ptr<Server> server_;
   std::vector<std::thread> server_threads_;
