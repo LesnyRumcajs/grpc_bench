@@ -37,13 +37,13 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
   results[name][:avg_mem_unit] = stats[2][0]
 end
 
-make_horizontal_line = -> { puts '-' * 75 }
+make_horizontal_line = -> { puts '-' * 76 }
 make_data_line = lambda do |*args|
-  puts "| #{args[0].to_s.ljust(20)}|" \
+  puts "| #{args[0].to_s.ljust(18)} |" \
        "#{args[1].to_s.rjust(8)} |" \
        "#{args[2].to_s.rjust(15)} |" \
        "#{args[3].to_s.rjust(9)} |" \
-       "#{args[4].to_s.rjust(12)} |"
+       "#{args[4].to_s.rjust(14)} |"
 end
 make_horizontal_line[]
 make_data_line['name', 'req/s', 'avg. latency', 'avg. cpu', 'avg. memory']
@@ -53,6 +53,6 @@ results.sort_by { |_k, v| v[:req_per_s] }.reverse_each do |name, result|
                  result[:req_per_s].round(0),
                  result[:avg_resp_time],
                  result[:avg_cpu].round(2).to_s + '%',
-                 result[:avg_mem].round(2).to_s + result[:avg_mem_unit]]
+                 result[:avg_mem].round(2).to_s + ' ' + result[:avg_mem_unit]]
 end
 make_horizontal_line[]
