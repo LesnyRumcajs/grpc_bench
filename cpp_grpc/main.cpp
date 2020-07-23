@@ -46,6 +46,11 @@ class ServerImpl final {
     server_->Shutdown();
     // Always shutdown the completion queue after the server.
     cq_->Shutdown();
+
+    for (auto& thread : server_threads_) {
+      if (thread.joinable())
+        thread.join();
+    }
   }
 
   // There is no shutdown handling in this code.
@@ -66,7 +71,11 @@ class ServerImpl final {
     std::cout << "Server listening on " << server_address << std::endl;
 
     // Proceed to the server's main loop.
-    HandleRpcs();
+    for (int i = 0; i < std::thread::hardware_concurrency(); i++) {
+      server_threads_.emplace_back(std::thread([this] { this->HandleRpcs(); }));
+    }
+
+    for (;;) {}
   }
 
  private:
@@ -160,6 +169,7 @@ class ServerImpl final {
   std::unique_ptr<ServerCompletionQueue> cq_;
   Greeter::AsyncService service_;
   std::unique_ptr<Server> server_;
+  std::vector<std::thread> server_threads_;
 };
 
 int main(int argc, char** argv) {

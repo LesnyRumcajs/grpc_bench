@@ -8,6 +8,6 @@ RUN apt update && apt install -y protobuf-compiler protobuf-compiler-grpc libgrp
 RUN mkdir gen && \
     protoc --proto_path=/app/proto/helloworld --cpp_out=gen helloworld.proto && \
     protoc --proto_path=/app/proto/helloworld --grpc_out=gen --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` helloworld.proto
-RUN g++ main.cpp gen/helloworld.grpc.pb.cc gen/helloworld.pb.cc -O3 -Igen -lgrpc++ -lprotobuf -lgrpc
+RUN g++ main.cpp gen/helloworld.grpc.pb.cc gen/helloworld.pb.cc -O3 -Igen -lgrpc++ -lprotobuf -lgrpc -lpthread
 
 ENTRYPOINT /app/a.out
