@@ -6,7 +6,7 @@ docker build --force-rm -f rust_thruster/Dockerfile -t rust_thruster_test .
 
 docker build --force-rm -f go_grpc/Dockerfile -t go_grpc_test .
 
-docker build --force-rm -f cpp_grpc/Dockerfile -t cpp_grpc_test .
+docker build --force-rm -f cpp_grpc_mt/Dockerfile -t cpp_grpc_mt_test .
 
 docker build --force-rm -f cpp_grpc_st/Dockerfile -t cpp_grpc_st_test .
 

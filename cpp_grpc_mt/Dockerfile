@@ -3,7 +3,7 @@ FROM gcc:10
 RUN apt update && apt install -y protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
 
 WORKDIR /app
-COPY cpp_grpc /app
+COPY cpp_grpc_mt /app
 COPY proto /app/proto
 
 RUN mkdir gen && \

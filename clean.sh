@@ -8,7 +8,7 @@ docker rmi \
     golang:1.14 \
     go_grpc_test \
     gcc:10 \
-    cpp_grpc_test \
+    cpp_grpc_mt_test \
     cpp_grpc_st_test \
     ruby:2.7-buster \
     ruby_grpc_test \

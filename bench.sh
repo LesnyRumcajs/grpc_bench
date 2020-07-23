@@ -13,10 +13,10 @@ docker pull infoblox/ghz:0.0.1
 # Go grpc benchmark
 ./run_single_bench.sh go_grpc_test "${RESULT_DIR}"
 
-# Cpp grpc benchmark
-./run_single_bench.sh cpp_grpc_test "${RESULT_DIR}"
+# Cpp grpc multi threaded benchmark
+./run_single_bench.sh cpp_grpc_mt_test "${RESULT_DIR}"
 
-# Cpp single threaded grpc benchmark
+# Cpp grpc single threaded grpc benchmark
 ./run_single_bench.sh cpp_grpc_st_test "${RESULT_DIR}"
 
 # Ruby benchmark
