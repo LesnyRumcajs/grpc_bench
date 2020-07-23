@@ -2,6 +2,8 @@
 
 RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 
+docker pull infoblox/ghz:0.0.1
+
 # Rust Tonic benchmark
 ./run_single_bench.sh rust_tonic_test "${RESULT_DIR}"
 
