@@ -1,6 +1,6 @@
 #!/bin/sh
 
-docker build --force-rm -f rust_tonic/Dockerfile -t rust_tonic_test .
+docker build --force-rm -f rust_tonic_mt/Dockerfile -t rust_tonic_mt_test .
 
 docker build --force-rm -f rust_tonic_st/Dockerfile -t rust_tonic_st_test .
 
