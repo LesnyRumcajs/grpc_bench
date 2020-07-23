@@ -28,13 +28,23 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
   name = File.basename(file).split(/_test.stats/).first
   stats = File
           .read(file)
-          .scan(/([0-9\.]+)%\s+([0-9\.]+)(\w+)/)[0..-2]
+          .scan(/([0-9\.]+)%\s+([0-9\.]+)(\w+)/)[0..-2] # ignore the last sample, not very reliable
           .map { |cpu, memory, mem_unit| [cpu.to_f, memory.to_f, mem_unit] }
           .transpose
 
-  results[name][:avg_cpu] = stats[0].sum / stats[0].length
-  results[name][:avg_mem] = stats[1].sum / stats[1].length
-  results[name][:avg_mem_unit] = stats[2][0]
+  results[name][:avg_mem_unit] = 'MiB'
+
+  if stats[0].nil?
+    puts "Warning: no stats for #{file}"
+    results[name][:avg_cpu] = 0
+    results[name][:avg_mem] = 0
+  else
+    results[name][:avg_cpu] = stats[0].sum / stats[0].length
+    results[name][:avg_mem] = stats[1].zip(stats[2]).inject(0) do |sum, sample|
+      value, unit = sample
+      sum + value * (unit == 'GiB' ? 1024 : 1)
+    end / stats[1].length
+  end
 end
 
 make_horizontal_line = -> { puts '-' * 76 }
