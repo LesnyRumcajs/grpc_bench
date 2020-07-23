@@ -24,11 +24,11 @@ docker rmi \
     dart_grpc_test \
     java_micronaut_test \
     swift:5.2 \
-    swift_grpc_test \
+    swift_grpc_st_test \
     python:3.9-rc \
-    lua_grpc_test \
+    lua_grpc_st_test \
     node:stretch-slim \
-    node_grpc_test \
+    node_grpc_st_test \
     php:zts-buster \
     php_grpc_test \
     mcr.microsoft.com/dotnet/core/sdk:3.1 \

@@ -40,14 +40,14 @@ docker pull infoblox/ghz:0.0.1
 # Java Micronaut benchmark
 ./run_single_bench.sh java_micronaut_test "${RESULT_DIR}"
 
-# Swift grpc benchmark
-./run_single_bench.sh swift_grpc_test "${RESULT_DIR}"
+# Swift grpc single threaded benchmark
+./run_single_bench.sh swift_grpc_st_test "${RESULT_DIR}"
 
-# Lua grpc benchmark
-./run_single_bench.sh lua_grpc_test "${RESULT_DIR}"
+# Lua grpc single threaded benchmark
+./run_single_bench.sh lua_grpc_st_test "${RESULT_DIR}"
 
-# Node.js grpc benchmark
-./run_single_bench.sh node_grpc_test "${RESULT_DIR}"
+# Node.js grpc single threaded benchmark
+./run_single_bench.sh node_grpc_st_test "${RESULT_DIR}"
 
 # PHP benchmark
 ./run_single_bench.sh php_grpc_test "${RESULT_DIR}"
