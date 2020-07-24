@@ -16,4 +16,4 @@ jobs:
     - name: Run the benchmarks
       run: ./bench.sh
       env:
-        GRPC_BENCHMARK_DURATION: "3s"
+        GRPC_BENCHMARK_DURATION: "30s"
