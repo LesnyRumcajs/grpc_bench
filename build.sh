@@ -28,11 +28,11 @@ docker build --force-rm -f dart_grpc/Dockerfile -t dart_grpc_test .
 
 docker build --force-rm -f java_micronaut/Dockerfile -t java_micronaut_test .
 
-docker build --force-rm -f swift_grpc/Dockerfile -t swift_grpc_test .
+docker build --force-rm -f swift_grpc_st/Dockerfile -t swift_grpc_st_test .
 
-docker build --force-rm -f lua_grpc/Dockerfile -t lua_grpc_test .
+docker build --force-rm -f lua_grpc_st/Dockerfile -t lua_grpc_st_test .
 
-docker build --force-rm -f node_grpc/Dockerfile -t node_grpc_test .
+docker build --force-rm -f node_grpc_st/Dockerfile -t node_grpc_st_test .
 
 docker build --force-rm -f php_grpc/Dockerfile -t php_grpc_test .
 
