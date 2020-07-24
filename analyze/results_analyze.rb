@@ -29,7 +29,8 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
   stats = File
           .read(file)
           .scan(/([0-9\.]+)%\s+([0-9\.]+)(\w+)/)[0..-2] # ignore the last sample, not very reliable
-          .map { |cpu, memory, mem_unit| [cpu.to_f, memory.to_f, mem_unit] }
+          .map { |cpu, memory, mem_unit| [cpu.to_f, memory.to_f * (mem_unit == 'GiB' ? 1024 : 1)] }
+          .reject { |cpu, _mem| cpu < 1 }
           .transpose
 
   results[name][:avg_mem_unit] = 'MiB'
@@ -40,10 +41,7 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
     results[name][:avg_mem] = 0
   else
     results[name][:avg_cpu] = stats[0].sum / stats[0].length
-    results[name][:avg_mem] = stats[1].zip(stats[2]).inject(0) do |sum, sample|
-      value, unit = sample
-      sum + value * (unit == 'GiB' ? 1024 : 1)
-    end / stats[1].length
+    results[name][:avg_mem] = stats[1].sum / stats[1].length
   end
 end
 
