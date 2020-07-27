@@ -21,6 +21,7 @@ Test duration is governed by environmental variable `GRPC_BENCHMARK_DURATION`. D
 
 The maximum number of cpus used by server is governed by the environmental variable `GRPC_SERVER_CPUS`. Defaults to `1`.
 
+Which tests to run is governed by a regex in `GRPC_BENCHMARK_SELECT`, for example `rust` or `(kotlin|java)`. Defaults to all tests.
 
 # Results
 You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.
