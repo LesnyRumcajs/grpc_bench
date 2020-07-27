@@ -13,6 +13,7 @@ for NAME in rust_tonic_mt rust_tonic_st rust_thruster \
             python_grpc \
             java_grpc java_micronaut java_aot \
             kotlin_grpc \
+            scala_akka \
             node_grpc_st \
             dart_grpc \
             crystal_grpc \
