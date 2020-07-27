@@ -13,12 +13,12 @@ for NAME in rust_tonic_mt rust_tonic_st rust_thruster \
             python_grpc \
             java_grpc java_micronaut java_aot \
             kotlin_grpc \
-            node_grpc \
+            node_grpc_st \
             dart_grpc \
             crystal_grpc \
-            swift_grpc \
+            swift_grpc_st \
             csharp_grpc \
-            lua_grpc \
+            lua_grpc_st \
             php_grpc \
             elixir_grpc; do
     if echo $NAME | grep -qE "$GRPC_BENCHMARK_SELECT"; then
