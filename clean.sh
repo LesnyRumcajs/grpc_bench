@@ -31,6 +31,7 @@ docker rmi \
     lua_grpc_st_test \
     node:stretch-slim \
     node_grpc_st_test \
+    node_grpcjs_st_test \
     php:zts-buster \
     php_grpc_test \
     mcr.microsoft.com/dotnet/core/sdk:3.1 \
