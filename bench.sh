@@ -4,68 +4,27 @@ RESULT_DIR=results/$(date "+%y%d%mT%H%M%S")
 
 docker pull infoblox/ghz:0.0.1
 
-# Rust Tonic multi threaded benchmark
-./run_single_bench.sh rust_tonic_mt_test "${RESULT_DIR}"
+GRPC_BENCHMARK_SELECT=${GRPC_BENCHMARK_SELECT:-"."}
 
-# Rust Tonic single threaded benchmark
-./run_single_bench.sh rust_tonic_st_test "${RESULT_DIR}"
-
-# Rust Thruster benchmark
-./run_single_bench.sh rust_thruster_test "${RESULT_DIR}"
-
-# Go grpc benchmark
-./run_single_bench.sh go_grpc_test "${RESULT_DIR}"
-
-# Cpp grpc multi threaded benchmark
-./run_single_bench.sh cpp_grpc_mt_test "${RESULT_DIR}"
-
-# Cpp grpc single threaded grpc benchmark
-./run_single_bench.sh cpp_grpc_st_test "${RESULT_DIR}"
-
-# Ruby benchmark
-./run_single_bench.sh ruby_grpc_test "${RESULT_DIR}"
-
-# Python grpc benchmark
-./run_single_bench.sh python_grpc_test "${RESULT_DIR}"
-
-# Scala akka benchmark
-./run_single_bench.sh scala_akka_test "${RESULT_DIR}"
-
-# Java grpc benchmark
-./run_single_bench.sh java_grpc_test "${RESULT_DIR}"
-
-# Kotlin grpc benchmark
-./run_single_bench.sh kotlin_grpc_test "${RESULT_DIR}"
-
-# Crystal grpc benchmark
-./run_single_bench.sh crystal_grpc_test "${RESULT_DIR}"
-
-# Dart grpc benchmark
-./run_single_bench.sh dart_grpc_test "${RESULT_DIR}"
-
-# Java Micronaut benchmark
-./run_single_bench.sh java_micronaut_test "${RESULT_DIR}"
-
-# Swift grpc single threaded benchmark
-./run_single_bench.sh swift_grpc_st_test "${RESULT_DIR}"
-
-# Lua grpc single threaded benchmark
-./run_single_bench.sh lua_grpc_st_test "${RESULT_DIR}"
-
-# Node.js grpc single threaded benchmark
-./run_single_bench.sh node_grpc_st_test "${RESULT_DIR}"
-
-# PHP benchmark
-./run_single_bench.sh php_grpc_test "${RESULT_DIR}"
-
-# C# benchmark
-./run_single_bench.sh csharp_grpc_test "${RESULT_DIR}"
-
-# Elixir benchmark
-./run_single_bench.sh elixir_grpc_test "${RESULT_DIR}"
-
-# Java AoT benchmark
-./run_single_bench.sh java_aot_test "${RESULT_DIR}"
+for NAME in rust_tonic_mt rust_tonic_st rust_thruster \
+            go_grpc \
+            cpp_grpc_mt cpp_grpc_st \
+            ruby_grpc \
+            python_grpc \
+            java_grpc java_micronaut java_aot \
+            kotlin_grpc \
+            node_grpc_st \
+            dart_grpc \
+            crystal_grpc \
+            swift_grpc_st \
+            csharp_grpc \
+            lua_grpc_st \
+            php_grpc \
+            elixir_grpc; do
+    if echo $NAME | grep -qE "$GRPC_BENCHMARK_SELECT"; then
+        ./run_single_bench.sh ${NAME}_test "${RESULT_DIR}"
+    fi
+done
 
 echo "-----"
 echo "Benchmark finished. Detailed results are located in: ${RESULT_DIR}"
