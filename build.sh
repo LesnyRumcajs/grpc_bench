@@ -43,3 +43,5 @@ docker build --force-rm -f elixir_grpc/Dockerfile -t elixir_grpc_test .
 docker build --force-rm -f java_aot/Dockerfile -t java_aot_test .
 
 docker build --force-rm -f node_grpcjs_st/Dockerfile -t node_grpcjs_st_test .
+
+docker build --force-rm -f haskell_grpc/Dockerfile -t haskell_grpc_test .

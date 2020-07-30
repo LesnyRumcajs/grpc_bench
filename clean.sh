@@ -39,4 +39,6 @@ docker rmi \
     elixir:slim \
     elixir_grpc_test \
     oracle/graalvm-ce:20.1.0-java11-ol8 \
-    java_aot_test
+    java_aot_test \
+    debian:buster-slim \
+    haskell_grpc_test
