@@ -19,6 +19,7 @@ for NAME in rust_tonic_mt rust_tonic_st rust_thruster \
             crystal_grpc \
             swift_grpc_st \
             csharp_grpc \
+            dotnet_grpc \
             lua_grpc_st \
             php_grpc \
             elixir_grpc; do
