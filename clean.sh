@@ -36,6 +36,7 @@ docker rmi \
     php_grpc_test \
     mcr.microsoft.com/dotnet/core/sdk:3.1 \
     csharp_grpc_test \
+    mcr.microsoft.com/dotnet/sdk:5.0 \
     dotnet_grpc_test \
     elixir:slim \
     elixir_grpc_test \
