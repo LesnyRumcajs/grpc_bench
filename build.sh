@@ -38,6 +38,8 @@ docker build --force-rm -f php_grpc/Dockerfile -t php_grpc_test .
 
 docker build --force-rm -f csharp_grpc/Dockerfile -t csharp_grpc_test .
 
+docker build --force-rm -f dotnet_grpc/Dockerfile -t dotnet_grpc_test .
+
 docker build --force-rm -f elixir_grpc/Dockerfile -t elixir_grpc_test .
 
 docker build --force-rm -f java_aot/Dockerfile -t java_aot_test .
