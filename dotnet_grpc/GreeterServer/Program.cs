@@ -43,7 +43,7 @@ namespace GreeterServer
                     });
                     webBuilder.ConfigureLogging(logging =>
                     {
-                        //logging.ClearProviders();
+                        logging.ClearProviders();
                     });
                     webBuilder.UseStartup<Startup>();
                 });
