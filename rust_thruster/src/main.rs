@@ -28,7 +28,8 @@ pub async fn say_hello(context: Ctx, _next: MiddlewareNext<Ctx>) -> MiddlewareRe
     .await)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let _ = dotenv();
 
     env_logger::init();
@@ -45,5 +46,5 @@ fn main() {
     );
 
     let server = ProtoServer::new(app);
-    server.start(&host, port.parse::<u16>().unwrap());
+    server.build(&host, port.parse::<u16>().unwrap()).await;
 }

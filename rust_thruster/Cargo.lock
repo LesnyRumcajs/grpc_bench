@@ -994,6 +994,7 @@ dependencies = [
  "prost-build",
  "thruster",
  "thruster-grpc",
+ "tokio",
 ]
 
 [[package]]
