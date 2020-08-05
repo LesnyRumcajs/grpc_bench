@@ -22,7 +22,8 @@ for NAME in rust_tonic_mt rust_tonic_st rust_thruster \
             dotnet_grpc \
             lua_grpc_st \
             php_grpc \
-            elixir_grpc; do
+            elixir_grpc \
+            r_grpc; do
     if echo $NAME | grep -qE "$GRPC_BENCHMARK_SELECT"; then
         ./run_single_bench.sh ${NAME}_test "${RESULT_DIR}"
     fi

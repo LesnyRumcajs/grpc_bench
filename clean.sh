@@ -41,4 +41,6 @@ docker rmi \
     elixir:slim \
     elixir_grpc_test \
     oracle/graalvm-ce:20.1.0-java11-ol8 \
-    java_aot_test
+    java_aot_test \
+    r-base:4.0.2 \
+    r_grpc_test
