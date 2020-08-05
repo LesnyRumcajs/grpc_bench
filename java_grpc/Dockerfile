@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk
+FROM openjdk:11.0.8-slim-buster
 
 WORKDIR /app
 COPY java_grpc /app
