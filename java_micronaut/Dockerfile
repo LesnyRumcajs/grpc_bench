@@ -6,5 +6,6 @@ COPY proto/helloworld/helloworld.proto /app/src/main/proto/helloworld.proto
 
 RUN /app/gradlew installDist
 
-ENTRYPOINT /app/build/install/app/bin/app
+ENV JAVA_OPTS "-XX:+MinRAMPercentage=70 -XX:+MaxRAMPercentage=70"
 
+ENTRYPOINT /app/build/install/app/bin/app
