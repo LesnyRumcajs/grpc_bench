@@ -3,14 +3,15 @@
 NAME=$1
 REPORT_DIR=${2:-"results"}
 
-GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"30s"}
+GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"600s"}
 GRPC_SERVER_CPUS=${GRPC_SERVER_CPUS:-"1"}
+GRPC_SERVER_RAM=${GRPC_SERVER_RAM:-"512m"}
 
 echo "==> Running benchmark for ${NAME}..."
 
 mkdir -p "${REPORT_DIR}"
 
-docker run --name "${NAME}" --rm --cpus "${GRPC_SERVER_CPUS}" --network=host -d -t ${NAME}
+docker run --name "${NAME}" --rm --memory="${GRPC_SERVER_RAM}" --cpus "${GRPC_SERVER_CPUS}" --network=host -d -t ${NAME}
 
 sleep 5
 
