@@ -17,7 +17,7 @@ docker rmi \
     python_grpc_test \
     hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12 \
     scala_akka_test \
-    openjdk:8-jdk \
+    openjdk:11.0.8-slim-buster \
     crystal_grpc_test \
     crystallang/crystal:0.35.1 \
     java_grpc_test \
