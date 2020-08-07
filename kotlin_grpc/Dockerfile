@@ -6,6 +6,6 @@ COPY proto/helloworld/helloworld.proto /app/src/main/proto/hello_world.proto
 
 RUN /app/gradlew installDist
 
-ENV JAVA_OPTS "-XX:+UseParallelGC -XX:+ParallelGCThreads=2 -XX:+MinRAMPercentage=70 -XX:+MaxRAMPercentage=70"
+ENV JAVA_OPTS "-XX:+UseParallelGC -XX:ParallelGCThreads=2 -XX:+MinRAMPercentage=70 -XX:+MaxRAMPercentage=70"
 
 ENTRYPOINT [ "/app/build/install/examples/bin/hello-world-server" ]
