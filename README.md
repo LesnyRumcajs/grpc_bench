@@ -8,20 +8,16 @@ Contributions are most welcome!
 Linux or MacOS with Docker. Keep in mind that the results on MacOS may not be that reliable, Docker for Mac runs on a VM.
 
 # Running benchmark
-To build the test images, run: `./build.sh` . You need them to run the benchmarks.
+To build the benchmarks images use: `./build.sh [BENCH1] [BENCH2] ...` . You need them to run the benchmarks.
 
-To run all the benchmarks, run: `./bench.sh` . They will be run sequentially.
+To run the benchmarks use: `./bench.sh [BENCH1] [BENCH2] ...` . They will be run sequentially.
 
-To run a single benchmark, run: `./run_single_bench.sh <BENCHMARK_NAME>` .
-
-To clean-up the test images, run: `./clean.sh` .
+To clean-up the benchmark images use: `./clean.sh [BENCH1] [BENCH2] ...`
 
 ## Configuring the benchmark
-Test duration is governed by environmental variable `GRPC_BENCHMARK_DURATION`. Defaults to `30s`.
+Benchmark duration is governed by environmental variable `GRPC_BENCHMARK_DURATION`. Defaults to `30s`.
 
 The maximum number of cpus used by server is governed by the environmental variable `GRPC_SERVER_CPUS`. Defaults to `1`.
-
-Which tests to run is governed by a regex in `GRPC_BENCHMARK_SELECT`, for example `rust` or `(kotlin|java)`. Defaults to all tests.
 
 # Results
 You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.

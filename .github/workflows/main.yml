@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build the test images
+    - name: Build Docker images for the benchmarks
       run: ./build.sh
     - name: Run the benchmarks
       run: ./bench.sh
