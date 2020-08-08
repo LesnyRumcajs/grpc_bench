@@ -13,7 +13,7 @@ end
 
 results = Hash.new { |hash, key| hash[key] = {} }
 Dir.glob("#{report_directory}/*.report").each do |file|
-  name = File.basename(file).split(/_test.report/).first
+  name = File.basename(file).split(/_bench.report/).first
   results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
   results[name][:ok_responses] = begin
                                    File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
@@ -25,7 +25,7 @@ Dir.glob("#{report_directory}/*.report").each do |file|
 end
 
 Dir.glob("#{report_directory}/*.stats").each do |file|
-  name = File.basename(file).split(/_test.stats/).first
+  name = File.basename(file).split(/_bench.stats/).first
   stats = File
           .read(file)
           .scan(/([0-9\.]+)%\s+([0-9\.]+)(\w+)/)[0..-2] # ignore the last sample, not very reliable
