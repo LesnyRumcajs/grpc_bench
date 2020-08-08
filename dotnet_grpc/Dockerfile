@@ -1,9 +1,0 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0
-
-WORKDIR /app
-COPY dotnet_grpc /app
-COPY proto /proto
-
-RUN dotnet build -c Release Greeter.sln
-
-ENTRYPOINT [ "dotnet", "run" , "-c", "Release", "-p", "GreeterServer", "--no-build" ]

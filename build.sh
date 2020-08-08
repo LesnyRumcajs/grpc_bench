@@ -1,47 +1,33 @@
 #!/bin/sh
 
-docker build --force-rm -f rust_tonic_mt/Dockerfile -t rust_tonic_mt_test .
+## The list of benchmarks to build
+BENCHMARKS_TO_BUILD="${@}"
+##  ...or use all the *_bench dirs by default
+BENCHMARKS_TO_BUILD="${BENCHMARKS_TO_BUILD:-$(find . -name '*_bench' -type d -maxdepth 1 | sort)}"
 
-docker build --force-rm -f rust_tonic_st/Dockerfile -t rust_tonic_st_test .
+builds=""
+for benchmark in ${BENCHMARKS_TO_BUILD}; do
+	echo "==> Building Docker image for ${benchmark}..."
+	( (
+		DOCKER_BUILDKIT=1 docker image build --force-rm --file "${benchmark}/Dockerfile" \
+			--tag "${benchmark##*/}" . >"${benchmark}.tmp" 2>&1 &&
+			rm -f "${benchmark}.tmp" &&
+			echo "==> Done building ${benchmark}"
+	) || (
+		cat "${benchmark}.tmp"
+		rm -f "${benchmark}.tmp"
+		echo "==> Error building ${benchmark}"
+		exit 1
+	) ) &
+	builds="${builds} ${!}"
+done
 
-docker build --force-rm -f rust_thruster/Dockerfile -t rust_thruster_test .
-
-docker build --force-rm -f go_grpc/Dockerfile -t go_grpc_test .
-
-docker build --force-rm -f cpp_grpc_mt/Dockerfile -t cpp_grpc_mt_test .
-
-docker build --force-rm -f cpp_grpc_st/Dockerfile -t cpp_grpc_st_test .
-
-docker build --force-rm -f ruby_grpc/Dockerfile -t ruby_grpc_test .
-
-docker build --force-rm -f python_grpc/Dockerfile -t python_grpc_test .
-
-docker build --force-rm -f scala_akka/Dockerfile -t scala_akka_test .
-
-docker build --force-rm -f java_grpc/Dockerfile -t java_grpc_test .
-
-docker build --force-rm -f kotlin_grpc/Dockerfile -t kotlin_grpc_test .
-
-docker build --force-rm -f crystal_grpc/Dockerfile -t crystal_grpc_test .
-
-docker build --force-rm -f dart_grpc/Dockerfile -t dart_grpc_test .
-
-docker build --force-rm -f java_micronaut/Dockerfile -t java_micronaut_test .
-
-docker build --force-rm -f swift_grpc_st/Dockerfile -t swift_grpc_st_test .
-
-docker build --force-rm -f lua_grpc_st/Dockerfile -t lua_grpc_st_test .
-
-docker build --force-rm -f node_grpc_st/Dockerfile -t node_grpc_st_test .
-
-docker build --force-rm -f php_grpc/Dockerfile -t php_grpc_test .
-
-docker build --force-rm -f csharp_grpc/Dockerfile -t csharp_grpc_test .
-
-docker build --force-rm -f dotnet_grpc/Dockerfile -t dotnet_grpc_test .
-
-docker build --force-rm -f elixir_grpc/Dockerfile -t elixir_grpc_test .
-
-docker build --force-rm -f java_aot/Dockerfile -t java_aot_test .
-
-docker build --force-rm -f node_grpcjs_st/Dockerfile -t node_grpcjs_st_test .
+echo "==> Waiting for the builds to finish..."
+for job in ${builds}; do
+	if ! wait "${job}"; then
+		wait
+		echo "Error building Docker image(s)"
+		exit 1
+	fi
+done
+echo "All done."
