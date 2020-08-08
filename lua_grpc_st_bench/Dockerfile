@@ -4,7 +4,7 @@ WORKDIR /app
 RUN pip install conan
 RUN apt update && apt install -y cmake
 
-COPY lua_grpc_st/conanfile.txt /app/conanfile.txt
+COPY lua_grpc_st_bench/conanfile.txt /app/conanfile.txt
 COPY proto/helloworld/helloworld.proto /app/helloworld.proto
 
 RUN conan remote add remote_bintray_conan-community https://api.bintray.com/conan/conan-community/conan
@@ -17,7 +17,7 @@ RUN conan install lua-cpp/5.3.4@jinq0123/testing --build=missing
 RUN conan install luapbintf/0.1@jinq0123/testing --build=missing
 RUN conan install grpc-lua/0.1@jinq0123/testing --build=missing
 
-COPY lua_grpc_st /app
+COPY lua_grpc_st_bench /app
 
 RUN cp $(find / -name 'lua-cpp' -executable -type f | head -n 1) .
 RUN cp $(find / -name 'libluapbintf.so' -type f | head -n 1) /app/luapbintf.so

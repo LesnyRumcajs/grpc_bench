@@ -1,7 +1,7 @@
 FROM golang:1.14
 
 WORKDIR /app
-COPY go_grpc /app
+COPY go_grpc_bench /app
 COPY proto /app/proto
 
 RUN apt update && apt install -y protobuf-compiler

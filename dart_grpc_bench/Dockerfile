@@ -1,11 +1,11 @@
 FROM google/dart
 
 WORKDIR /app
-COPY dart_grpc/pubspec.yaml /app/pubspec.yaml
+COPY dart_grpc_bench/pubspec.yaml /app/pubspec.yaml
 COPY proto /app/proto
 
 RUN pub get
-COPY dart_grpc /app
+COPY dart_grpc_bench /app
 RUN pub get --offline
 RUN apt update && apt install -y protobuf-compiler
 RUN pub global activate protoc_plugin

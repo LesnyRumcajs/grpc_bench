@@ -1,7 +1,7 @@
 FROM ruby:2.7-buster
 
 WORKDIR /app
-COPY ruby_grpc /app
+COPY ruby_grpc_bench /app
 COPY proto /app/proto
 
 RUN gem install grpc grpc-tools

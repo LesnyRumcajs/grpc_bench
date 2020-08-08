@@ -1,7 +1,7 @@
 FROM openjdk:8-jdk
 
 WORKDIR /app
-COPY java_micronaut /app
+COPY java_micronaut_bench /app
 COPY proto/helloworld/helloworld.proto /app/src/main/proto/helloworld.proto
 
 RUN /app/gradlew installDist

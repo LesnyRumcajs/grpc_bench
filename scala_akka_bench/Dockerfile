@@ -1,7 +1,7 @@
 FROM hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12
 
 WORKDIR /app
-COPY scala_akka /app
+COPY scala_akka_bench /app
 COPY proto/helloworld/helloworld.proto /app/src/main/protobuf/helloworld.proto
 
 RUN sbt compile

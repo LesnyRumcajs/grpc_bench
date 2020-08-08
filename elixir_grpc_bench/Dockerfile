@@ -1,7 +1,7 @@
 FROM elixir:slim
 
 WORKDIR /app
-COPY elixir_grpc /app
+COPY elixir_grpc_bench /app
 COPY proto /app/proto
 
 RUN apt update && apt install -y git protobuf-compiler

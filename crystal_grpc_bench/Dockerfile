@@ -1,7 +1,7 @@
 FROM crystallang/crystal:0.35.1
 
 WORKDIR /app
-COPY crystal_grpc /app
+COPY crystal_grpc_bench /app
 COPY proto /app/proto
 
 RUN shards install

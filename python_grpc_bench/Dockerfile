@@ -1,7 +1,7 @@
 FROM python:3-slim
 
 WORKDIR /app
-COPY python_grpc /app
+COPY python_grpc_bench /app
 COPY proto /app/proto
 
 RUN python -m pip install grpcio grpcio-tools

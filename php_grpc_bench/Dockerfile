@@ -11,13 +11,13 @@ RUN tar -xvf protoc-gen-php-grpc-1.2.1-linux-amd64.tar.gz && cp protoc-gen-php-g
 RUN tar -xvf rr-grpc-1.2.1-linux-amd64.tar.gz && cp rr-grpc-1.2.1-linux-amd64/rr-grpc /usr/bin/
 
 COPY proto /app/proto
-COPY php_grpc/composer.json /app/composer.json
+COPY php_grpc_bench/composer.json /app/composer.json
 
 RUN mkdir src && protoc --php_out=src --php-grpc_out=src --proto_path=/app/proto/helloworld helloworld.proto
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 RUN php composer-setup.php --quiet
 RUN ./composer.phar install
 
-COPY php_grpc /app
+COPY php_grpc_bench /app
 
 ENTRYPOINT [ "rr-grpc", "serve" ]
