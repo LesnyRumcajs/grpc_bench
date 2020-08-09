@@ -8,6 +8,10 @@ BENCHMARKS_TO_RUN="${BENCHMARKS_TO_RUN:-$(find . -name '*_bench' -type d -maxdep
 RESULTS_DIR="results/$(date '+%y%d%mT%H%M%S')"
 GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"30s"}
 GRPC_SERVER_CPUS=${GRPC_SERVER_CPUS:-"1"}
+GRPC_CLIENT_CONNECTIONS=${GRPC_CLIENT_CONNECTIONS:-"5"}
+GRPC_CLIENT_CONCURRENCY=${GRPC_CLIENT_CONCURRENCY:-"50"}
+GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
+GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 
 docker pull infoblox/ghz:0.0.1
 
@@ -24,10 +28,12 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--entrypoint=ghz infoblox/ghz:0.0.1 \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
-		--insecure \
-		--connections=5 \
-		--duration "${GRPC_BENCHMARK_DURATION}" \
-		-d "{\"name\":\"it's not as performant as we expected\"}" \
+        --insecure \
+        --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
+        --connections="${GRPC_CLIENT_CONNECTIONS}" \
+        --qps="${GRPC_CLIENT_QPS}" \
+        --duration "${GRPC_BENCHMARK_DURATION}" \
+        --data "{\"name\":\"it's not as performant as we expected\"}" \
 		127.0.0.1:50051 >"${RESULTS_DIR}/${NAME}".report
 	cat "${RESULTS_DIR}/${NAME}".report | grep "Requests/sec" | sed -E 's/^ +/    /'
 

@@ -15,9 +15,15 @@ To run the benchmarks use: `./bench.sh [BENCH1] [BENCH2] ...` . They will be run
 To clean-up the benchmark images use: `./clean.sh [BENCH1] [BENCH2] ...`
 
 ## Configuring the benchmark
-Benchmark duration is governed by environmental variable `GRPC_BENCHMARK_DURATION`. Defaults to `30s`.
+The benchmark can be configured through the following environment variables:
 
-The maximum number of cpus used by server is governed by the environmental variable `GRPC_SERVER_CPUS`. Defaults to `1`.
+|**Name**|**Description**|**Default value**|
+|--------|---------------|:---------------:|
+|GRPC_BENCHMARK_DURATION|Duration of the benchmark.|30s|
+|GRPC_SERVER_CPUS|Maximum number of cpus used by the server.|1|
+|GRPC_CLIENT_CONNECTIONS|Number of connections to use.|5|
+|GRPC_CLIENT_CONCURRENCY|Number of requests to run concurrently. It can't be smaller than the number of connections.|50|
+|GRPC_CLIENT_QPS|Rate limit, in queries per second (QPS).|0 (*unlimited*)|
 
 # Results
 You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.
