@@ -15,7 +15,7 @@ To run the benchmarks use: `./bench.sh [BENCH1] [BENCH2] ...` . They will be run
 To clean-up the benchmark images use: `./clean.sh [BENCH1] [BENCH2] ...`
 
 ## Configuring the benchmark
-The benchmark can be configure through the following environment variables:
+The benchmark can be configured through the following environment variables:
 
 |**Name**|**Description**|**Default value**|
 |--------|---------------|:---------------:|
