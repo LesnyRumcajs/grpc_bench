@@ -3,7 +3,7 @@
 ## The list of benchmarks to build
 BENCHMARKS_TO_BUILD="${@}"
 ##  ...or use all the *_bench dirs by default
-BENCHMARKS_TO_BUILD="${BENCHMARKS_TO_BUILD:-$(find . -name '*_bench' -type d -maxdepth 1 | sort)}"
+BENCHMARKS_TO_BUILD="${BENCHMARKS_TO_BUILD:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
 builds=""
 for benchmark in ${BENCHMARKS_TO_BUILD}; do

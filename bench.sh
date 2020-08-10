@@ -3,7 +3,7 @@
 ## The list of benchmarks to run
 BENCHMARKS_TO_RUN="${@}"
 ##  ...or use all the *_bench dirs by default
-BENCHMARKS_TO_RUN="${BENCHMARKS_TO_RUN:-$(find . -name '*_bench' -type d -maxdepth 1 | sort)}"
+BENCHMARKS_TO_RUN="${BENCHMARKS_TO_RUN:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
 RESULTS_DIR="results/$(date '+%y%d%mT%H%M%S')"
 GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"30s"}

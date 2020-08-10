@@ -5,7 +5,7 @@ BENCHMARKS_TO_CLEAN="${@}"
 ## Clean the ghz if there are no arguments
 IMAGES_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-infoblox/ghz:0.0.1}"
 ##  ...or use all the *_bench dirs by default
-BENCHMARKS_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-$(find . -name '*_bench' -type d -maxdepth 1 | sort)}"
+BENCHMARKS_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
 for benchmark in ${BENCHMARKS_TO_CLEAN}; do
 	IMAGES_TO_CLEAN="${IMAGES_TO_CLEAN} ${benchmark##*/}"
