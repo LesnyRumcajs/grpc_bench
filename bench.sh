@@ -24,7 +24,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 
 	mkdir -p "${RESULTS_DIR}"
 	docker run --name "${NAME}" --rm --cpus "${GRPC_SERVER_CPUS}" \
-        -e GRPC_SERVER_CPUS \
+		-e GRPC_SERVER_CPUS \
 		--network=host --detach --tty "${NAME}" >/dev/null
 	sleep 5
 	./collect_stats.sh "${NAME}" "${RESULTS_DIR}" &
