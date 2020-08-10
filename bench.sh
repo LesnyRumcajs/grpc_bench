@@ -13,6 +13,9 @@ GRPC_CLIENT_CONCURRENCY=${GRPC_CLIENT_CONCURRENCY:-"50"}
 GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
 GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 
+# Let containers know how many CPUs they will be running on
+export GRPC_SERVER_CPUS
+
 docker pull infoblox/ghz:0.0.1
 
 for benchmark in ${BENCHMARKS_TO_RUN}; do
@@ -21,6 +24,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 
 	mkdir -p "${RESULTS_DIR}"
 	docker run --name "${NAME}" --rm --cpus "${GRPC_SERVER_CPUS}" \
+		-e GRPC_SERVER_CPUS \
 		--network=host --detach --tty "${NAME}" >/dev/null
 	sleep 5
 	./collect_stats.sh "${NAME}" "${RESULTS_DIR}" &
