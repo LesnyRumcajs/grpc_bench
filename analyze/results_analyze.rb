@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'csv'
+
 if ARGV.empty?
   puts 'You need to provide report directory path!'
   exit 1
@@ -14,6 +16,7 @@ end
 results = Hash.new { |hash, key| hash[key] = {} }
 Dir.glob("#{report_directory}/*.report").each do |file|
   name = File.basename(file).split(/_bench.report/).first
+  results[name][:benchmark_name] = name
   results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
   results[name][:ok_responses] = begin
                                    File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
@@ -64,3 +67,8 @@ results.sort_by { |_k, v| v[:req_per_s] }.reverse_each do |name, result|
                  result[:avg_mem].round(2).to_s + ' ' + result[:avg_mem_unit]]
 end
 make_horizontal_line[]
+
+CSV.open("#{report_directory}/report.csv", 'w') do |csv|
+  csv << results.first[1].keys
+  results.values.each { |val| csv << val.values }
+end

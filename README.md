@@ -27,3 +27,5 @@ The benchmark can be configured through the following environment variables:
 
 # Results
 You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.
+
+After running benchmarks, detailed results are generated to `results/<TIMESTAMP>`. They include `ghz` outputs, `docker stats` outputs and a collective CSV report.
