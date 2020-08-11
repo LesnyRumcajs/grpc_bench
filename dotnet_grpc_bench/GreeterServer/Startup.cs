@@ -19,6 +19,7 @@
 using System;
 using GreeterServer.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -29,11 +30,16 @@ namespace GreeterServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc(o => o.IgnoreUnknownServices = true);
+            services.Configure<RouteOptions>(c => c.SuppressCheckForUnhandledSecurityMetadata = true);
+            services.AddSingleton<GreeterService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime)
         {
             applicationLifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
+
+            // Configure ASP.NET Core to not use a per-request DI scope
+            app.UseMiddleware<ServiceProvidersMiddleware>();
 
             app.UseRouting();
 
