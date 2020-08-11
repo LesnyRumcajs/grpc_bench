@@ -19,6 +19,7 @@
 using System;
 using GreeterServer.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -29,6 +30,8 @@ namespace GreeterServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc(o => o.IgnoreUnknownServices = true);
+            services.Configure<RouteOptions>(c => c.SuppressCheckForUnhandledSecurityMetadata = true);
+            services.AddSingleton<GreeterService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime)
@@ -36,6 +39,8 @@ namespace GreeterServer
             applicationLifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
 
             app.UseRouting();
+
+            app.UseMiddleware<ServiceProvidersMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
