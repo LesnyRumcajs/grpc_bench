@@ -38,9 +38,10 @@ namespace GreeterServer
         {
             applicationLifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
 
-            app.UseRouting();
-
+            // Configure ASP.NET Core to not use a per-request DI scope
             app.UseMiddleware<ServiceProvidersMiddleware>();
+
+            app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
