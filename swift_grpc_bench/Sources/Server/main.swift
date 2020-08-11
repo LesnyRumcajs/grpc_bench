@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import Foundation
 import GRPC
 import HelloWorldModel
 import NIO
@@ -25,7 +26,8 @@ LoggingSystem.bootstrap {
   return handler
 }
 
-let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+let numberOfThreads = ProcessInfo.processInfo.environment["GRPC_SERVER_CPUS"].flatMap(Int.init) ?? 1
+let group = MultiThreadedEventLoopGroup(numberOfThreads: numberOfThreads)
 defer {
   try! group.syncShutdownGracefully()
 }

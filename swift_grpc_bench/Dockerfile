@@ -1,7 +1,7 @@
 FROM swift:5.2
 
 WORKDIR /app
-COPY swift_grpc_st_bench /app
+COPY swift_grpc_bench /app
 
 RUN swift build -c release
 
