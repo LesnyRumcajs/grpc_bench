@@ -1,0 +1,5 @@
+Dockerfile
+.swiftpm
+.build
+Package.resolved
+.DS_Store
