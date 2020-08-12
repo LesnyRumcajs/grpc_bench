@@ -21,6 +21,9 @@ Dir.glob("#{report_directory}/*.report").each do |file|
                                    0
                                  end
   results[name][:avg_resp_time] = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
+  results[name][:_90pct] = File.read(file).scan(/\s*90 % in \s*(.*\w)/)[0][0]
+  results[name][:_95pct] = File.read(file).scan(/\s*95 % in \s*(.*\w)/)[0][0]
+  results[name][:_99pct] = File.read(file).scan(/\s*99 % in \s*(.*\w)/)[0][0]
   results[name][:req_per_s] = results[name][:ok_responses] / results[name][:total_time]
 end
 
@@ -45,21 +48,27 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
   end
 end
 
-make_horizontal_line = -> { puts '-' * 76 }
+make_horizontal_line = -> { puts '-' * 128 }
 make_data_line = lambda do |*args|
   puts "| #{args[0].to_s.ljust(18)} |" \
        "#{args[1].to_s.rjust(8)} |" \
        "#{args[2].to_s.rjust(15)} |" \
-       "#{args[3].to_s.rjust(9)} |" \
-       "#{args[4].to_s.rjust(14)} |"
+       "#{args[3].to_s.rjust(15)} |" \
+       "#{args[3].to_s.rjust(15)} |" \
+       "#{args[4].to_s.rjust(15)} |" \
+       "#{args[5].to_s.rjust(9)} |" \
+       "#{args[6].to_s.rjust(14)} |"
 end
 make_horizontal_line[]
-make_data_line['name', 'req/s', 'avg. latency', 'avg. cpu', 'avg. memory']
+make_data_line['name', 'req/s', 'avg. latency', '90 % in', '95 % in', '99 % in', 'avg. cpu', 'avg. memory']
 make_horizontal_line[]
 results.sort_by { |_k, v| v[:req_per_s] }.reverse_each do |name, result|
   make_data_line[name,
                  result[:req_per_s].round(0),
                  result[:avg_resp_time],
+                 result[:_90pct],
+                 result[:_95pct],
+                 result[:_99pct],
                  result[:avg_cpu].round(2).to_s + '%',
                  result[:avg_mem].round(2).to_s + ' ' + result[:avg_mem_unit]]
 end
