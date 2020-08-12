@@ -26,14 +26,14 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 
 	mkdir -p "${RESULTS_DIR}"
 	docker run --name "${NAME}" --rm \
-        --cpus "${GRPC_SERVER_CPUS}" \
-        --memory "${GRPC_SERVER_RAM}" \
+		--cpus "${GRPC_SERVER_CPUS}" \
+		--memory "${GRPC_SERVER_RAM}" \
 		-e GRPC_SERVER_CPUS \
 		--network=host --detach --tty "${NAME}" >/dev/null
 	sleep 5
 	./collect_stats.sh "${NAME}" "${RESULTS_DIR}" &
 	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
-        --cpus $GRPC_CLIENT_CPUS
+		--cpus $GRPC_CLIENT_CPUS
 		--entrypoint=ghz infoblox/ghz:0.0.1 \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
