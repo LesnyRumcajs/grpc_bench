@@ -45,12 +45,6 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	docker container stop "${NAME}" >/dev/null
 done
 
-echo "-----"
-echo "Benchmark finished. Detailed results are located in: ${RESULTS_DIR}"
-docker run --name analyzer --rm \
-	-v "${PWD}/analyze:/analyze:ro" \
-	-v "${PWD}/${RESULTS_DIR}:/reports:ro" \
-	ruby:2.7-buster ruby /analyze/results_analyze.rb reports ||
-	exit 1
+sh analyze.sh $RESULTS_DIR
 
 echo "All done."
