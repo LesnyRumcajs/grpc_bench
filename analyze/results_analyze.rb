@@ -54,10 +54,10 @@ make_data_line = lambda do |*args|
        "#{args[1].to_s.rjust(8)} |" \
        "#{args[2].to_s.rjust(15)} |" \
        "#{args[3].to_s.rjust(15)} |" \
-       "#{args[3].to_s.rjust(15)} |" \
        "#{args[4].to_s.rjust(15)} |" \
-       "#{args[5].to_s.rjust(9)} |" \
-       "#{args[6].to_s.rjust(14)} |"
+       "#{args[5].to_s.rjust(15)} |" \
+       "#{args[6].to_s.rjust(9)} |" \
+       "#{args[7].to_s.rjust(14)} |"
 end
 make_horizontal_line[]
 make_data_line['name', 'req/s', 'avg. latency', '90 % in', '95 % in', '99 % in', 'avg. cpu', 'avg. memory']
