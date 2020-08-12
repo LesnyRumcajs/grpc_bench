@@ -35,6 +35,7 @@ public class HelloWorldServer {
     /* The port on which the server should run */
     int port = 50051;
     server = ServerBuilder.forPort(port)
+        .directExecutor()
         .addService(new GreeterImpl())
         .build()
         .start();
