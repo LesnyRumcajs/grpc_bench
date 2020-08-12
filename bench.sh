@@ -33,7 +33,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	sleep 5
 	./collect_stats.sh "${NAME}" "${RESULTS_DIR}" &
 	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
-		--cpus $GRPC_CLIENT_CPUS
+		--cpus $GRPC_CLIENT_CPUS \
 		--entrypoint=ghz infoblox/ghz:0.0.1 \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
