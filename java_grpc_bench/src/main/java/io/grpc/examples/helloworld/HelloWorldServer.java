@@ -34,15 +34,15 @@ public class HelloWorldServer {
   private void start() throws IOException {
     /* The port on which the server should run */
     int port = 50051;
-    server = ServerBuilder.forPort(port)
-        .addService(new GreeterImpl())
-        .build()
-        .start();
+    ServerBuilder<?> sb = ServerBuilder.forPort(port);
+    sb = configureExecutor(sb);
+    server = sb.addService(new GreeterImpl()).build().start();
     logger.info("Server started, listening on " + port);
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
+        // Use stderr here since the logger may have been reset by its JVM shutdown
+        // hook.
         System.err.println("*** shutting down gRPC server since JVM is shutting down");
         try {
           HelloWorldServer.this.stop();
@@ -54,6 +54,48 @@ public class HelloWorldServer {
     });
   }
 
+  /**
+   * Allow customization of the Executor with two environment variables:
+   * 
+   * <p>
+   * <ul>
+   * <li>JVM_EXECUTOR_TYPE: direct, workStealing, single, fixed, cached</li>
+   * <li>JVM_EXECUTOR_THREADS: integer value.</li>
+   * </ul>
+   * </p>
+   * 
+   * The number of Executor Threads will default to the number of
+   * availableProcessors(). Only the workStealing and fixed executors will use
+   * this value.
+   */
+  private ServerBuilder<?> configureExecutor(ServerBuilder<?> sb) {
+    String threads = System.getenv("JVM_EXECUTOR_THREADS");
+    int i_threads = Runtime.getRuntime().availableProcessors();
+    if (threads != null && !threads.isEmpty()) {
+      i_threads = Integer.parseInt(threads);
+    }
+
+    String value = System.getenv("JVM_EXECUTOR_TYPE");
+    if ("direct".equals(value)) {
+      sb = sb.directExecutor();
+    } else if ("workStealing".equals(value)) {
+      sb = sb.executor(java.util.concurrent.Executors.newWorkStealingPool(i_threads));
+    } else if ("single".equals(value)) {
+      sb = sb.executor(java.util.concurrent.Executors.newSingleThreadExecutor());
+    } else if ("fixed".equals(value)) {
+      sb = sb.executor(java.util.concurrent.Executors.newFixedThreadPool(i_threads));
+    } else if ("cached".equals(value)) {
+      sb = sb.executor(java.util.concurrent.Executors.newCachedThreadPool());
+    } else {
+      /*
+       * Use a Direct Executor by default since the GRPC service in this code is
+       * guaranteed non-blocking
+       */
+      sb = sb.directExecutor();
+    }
+    return sb;
+  }
+
   private void stop() throws InterruptedException {
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
@@ -61,7 +103,8 @@ public class HelloWorldServer {
   }
 
   /**
-   * Await termination on the main thread since the grpc library uses daemon threads.
+   * Await termination on the main thread since the grpc library uses daemon
+   * threads.
    */
   private void blockUntilShutdown() throws InterruptedException {
     if (server != null) {
