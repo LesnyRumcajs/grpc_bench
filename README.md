@@ -24,7 +24,7 @@ We try to provide some metrics to make this decision easier:
 
 # What this benchmark does NOT take into account
 
-1. Completness of the gRPC library. We test only basic unary RPC at the moment. This is the most common service method which may be enough for some business use cases, but not for the others. When you're happy about the results of some technology, you should check out it's documentation (if it exists) and decide yourself is it production-ready.
+1. Completeness of the gRPC library. We test only basic unary RPC at the moment. This is the most common service method which may be enough for some business use cases, but not for the others. When you're happy about the results of some technology, you should check out it's documentation (if it exists) and decide yourself if is it production-ready.
 2. Taste. Some may find beauty in Ruby, some may feel like Java is the only real deal. Others treat languages as tools and don't care at all. We don't judge (officially 😉 ). Unless it's a huge state machine with raw `void` pointers. Ups!
 
 
