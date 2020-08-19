@@ -8,7 +8,6 @@ edition = "2018"
 opt-level = 3
 codegen-units = 1
 lto = true
-debug = true
 
 [dependencies]
 tonic = "0.3"
