@@ -14,13 +14,13 @@ mod hello_world {
 }
 
 #[middleware_fn]
-pub async fn say_hello(context: Ctx, _next: MiddlewareNext<Ctx>) -> MiddlewareResult<Ctx> {
-    let hello_world_request = context_to_message::<hello_world::HelloRequest>(context)
+pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> MiddlewareResult<Ctx> {
+    let hello_world_request = context_to_message::<hello_world::HelloRequest>(&mut context)
         .await
         .unwrap();
 
     Ok(message_to_context(
-        Ctx::default(),
+        context,
         hello_world::HelloReply {
             message: hello_world_request.name,
         },
@@ -37,7 +37,7 @@ async fn main() {
     let host = env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = env::var("PORT").unwrap_or_else(|_| "50051".to_string());
 
-    info!("Starting server at {}:{}", host, port);
+    info!("Starting server at {}:{}!", host, port);
 
     let mut app = App::<HyperRequest, Ctx, ()>::create(generate_context, ());
     app.post(
@@ -45,6 +45,5 @@ async fn main() {
         async_middleware!(Ctx, [say_hello]),
     );
 
-    let server = ProtoServer::new(app);
-    server.build(&host, port.parse::<u16>().unwrap()).await;
+    ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()).await;
 }
