@@ -11,6 +11,7 @@ lto = true
 
 [dependencies]
 async-trait = "0.1"
+bytes = "0.5.3"
 dotenv = "0.13.0"
 env_logger = "0.7.1"
 log = "0.4"
@@ -21,6 +22,8 @@ prost = "0.6"
 thruster = { version = "1.0.0", features = ["hyper_server"] }
 thruster-grpc = { git = "https://github.com/thruster-rs/thruster-grpc" }
 tokio = { version = "0.2", features = ["full"] }
+
+futures = "0.3.5"
 
 [build-dependencies]
 prost-build = "0.6"
