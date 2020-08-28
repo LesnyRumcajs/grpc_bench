@@ -2,7 +2,7 @@ plugins {
     // Provide convenience executables for trying out the examples.
     id 'application'
     // ASSUMES GRADLE 2.12 OR HIGHER. Use plugin version 0.7.5 with earlier gradle versions
-    id 'com.google.protobuf' version '0.8.8'
+    id 'com.google.protobuf' version '0.8.13'
     // Generate IntelliJ IDEA's .idea & .iml project files
     id 'idea'
 }
@@ -22,8 +22,8 @@ targetCompatibility = 14
 
 // Feel free to delete the comment at the next line. It is just for safely
 // updating the version in our release process.
-def grpcVersion = '1.30.1' // CURRENT_GRPC_VERSION
-def protobufVersion = '3.12.0'
+def grpcVersion = '1.31.1' // CURRENT_GRPC_VERSION
+def protobufVersion = '3.13.0'
 def protocVersion = protobufVersion
 
 dependencies {
@@ -35,10 +35,6 @@ dependencies {
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 
     runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
-
-    testImplementation "io.grpc:grpc-testing:${grpcVersion}"
-    testImplementation "junit:junit:4.12"
-    testImplementation "org.mockito:mockito-core:2.28.2"
 }
 
 protobuf {
