@@ -22,36 +22,33 @@ import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.concurrent.Executors;
 
 /**
  * Server that manages startup/shutdown of a {@code Greeter} server.
  */
 public class HelloWorldServer {
-  private static final Logger logger = Logger.getLogger(HelloWorldServer.class.getName());
 
+  private static final Logger logger = Logger.getLogger(HelloWorldServer.class.getName());
   private Server server;
 
   private void start() throws IOException {
     /* The port on which the server should run */
-    int port = 50051;
-    ServerBuilder<?> sb = ServerBuilder.forPort(port);
-    sb = configureExecutor(sb);
-    server = sb.addService(new GreeterImpl()).build().start();
+    var port = 50051;
+    var serverBuilder = configureExecutor(ServerBuilder.forPort(port));
+    server = serverBuilder.addService(new GreeterImpl()).build().start();
     logger.info("Server started, listening on " + port);
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown
-        // hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        try {
-          HelloWorldServer.this.stop();
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
-        System.err.println("*** server shut down");
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      // Use stderr here since the logger may have been
+      // reset by its JVM shutdown hook.
+      System.err.println("*** shutting down gRPC server since JVM is shutting down");
+      try {
+        server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
-    });
+      System.err.println("*** server shut down");
+    }));
   }
 
   /**
@@ -69,37 +66,26 @@ public class HelloWorldServer {
    * this value.
    */
   private ServerBuilder<?> configureExecutor(ServerBuilder<?> sb) {
-    String threads = System.getenv("JVM_EXECUTOR_THREADS");
-    int i_threads = Runtime.getRuntime().availableProcessors();
+    var threads = System.getenv("JVM_EXECUTOR_THREADS");
+    var i_threads = Runtime.getRuntime().availableProcessors();
     if (threads != null && !threads.isEmpty()) {
       i_threads = Integer.parseInt(threads);
     }
 
-    String value = System.getenv("JVM_EXECUTOR_TYPE");
-    if ("direct".equals(value)) {
-      sb = sb.directExecutor();
-    } else if ("workStealing".equals(value)) {
-      sb = sb.executor(java.util.concurrent.Executors.newWorkStealingPool(i_threads));
-    } else if ("single".equals(value)) {
-      sb = sb.executor(java.util.concurrent.Executors.newSingleThreadExecutor());
-    } else if ("fixed".equals(value)) {
-      sb = sb.executor(java.util.concurrent.Executors.newFixedThreadPool(i_threads));
-    } else if ("cached".equals(value)) {
-      sb = sb.executor(java.util.concurrent.Executors.newCachedThreadPool());
-    } else {
-      /*
-       * Use a Direct Executor by default since the GRPC service in this code is
-       * guaranteed non-blocking
-       */
-      sb = sb.directExecutor();
+    /*
+     * Use a Direct Executor by default (best performance) since the GRPC
+     * service in this code is guaranteed non-blocking
+     */
+    var value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "direct");
+    switch (value) {
+      case "direct" -> sb = sb.directExecutor();
+      case "single" -> sb = sb.executor(Executors.newSingleThreadExecutor());
+      case "fixed" -> sb = sb.executor(Executors.newFixedThreadPool(i_threads));
+      case "workStealing" -> sb = sb.executor(Executors.newWorkStealingPool(i_threads));
+      case "cached" -> sb = sb.executor(Executors.newCachedThreadPool());
     }
-    return sb;
-  }
 
-  private void stop() throws InterruptedException {
-    if (server != null) {
-      server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
-    }
+    return sb;
   }
 
   /**
@@ -116,16 +102,16 @@ public class HelloWorldServer {
    * Main launches the server from the command line.
    */
   public static void main(String[] args) throws IOException, InterruptedException {
-    final HelloWorldServer server = new HelloWorldServer();
-    server.start();
-    server.blockUntilShutdown();
+    var serverApp = new HelloWorldServer();
+    serverApp.start();
+    serverApp.blockUntilShutdown();
   }
 
   static class GreeterImpl extends GreeterGrpc.GreeterImplBase {
 
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      HelloReply reply = HelloReply.newBuilder().setMessage(req.getName()).build();
+      var reply = HelloReply.newBuilder().setMessage(req.getName()).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
     }
