@@ -20,8 +20,8 @@ repositories {
 }
 
 ext {
-    micronautVersion = "2.0.0.M3"
-    micronautGrpcVersion = "2.0.0.M3"
+    micronautVersion = "2.3.3"
+    micronautGrpcVersion = "2.3.3"
 }
 
 configurations {
