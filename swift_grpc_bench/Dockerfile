@@ -1,4 +1,4 @@
-FROM swift:5.2
+FROM swift:5.3-focal
 
 WORKDIR /app
 

@@ -20,25 +20,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
 import GRPC
 import NIO
-import NIOHTTP1
 import SwiftProtobuf
 
 
-/// Usage: instantiate Helloworld_GreeterClient, then call methods of this protocol to make API calls.
+/// The greeting service definition.
+///
+/// Usage: instantiate `Helloworld_GreeterClient`, then call methods of this protocol to make API calls.
 public protocol Helloworld_GreeterClientProtocol: GRPCClient {
+  var serviceName: String { get }
+  var interceptors: Helloworld_GreeterClientInterceptorFactoryProtocol? { get }
+
   func sayHello(
     _ request: Helloworld_HelloRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Helloworld_HelloRequest, Helloworld_HelloReply>
-
 }
 
 extension Helloworld_GreeterClientProtocol {
+  public var serviceName: String {
+    return "helloworld.Greeter"
+  }
 
-  /// Sends a greeting.
+  /// Sends a greeting
   ///
   /// - Parameters:
   ///   - request: Request to send to SayHello.
@@ -51,29 +56,47 @@ extension Helloworld_GreeterClientProtocol {
     return self.makeUnaryCall(
       path: "/helloworld.Greeter/SayHello",
       request: request,
-      callOptions: callOptions ?? self.defaultCallOptions
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSayHelloInterceptors() ?? []
     )
   }
+}
+
+public protocol Helloworld_GreeterClientInterceptorFactoryProtocol {
+
+  /// - Returns: Interceptors to use when invoking 'sayHello'.
+  func makeSayHelloInterceptors() -> [ClientInterceptor<Helloworld_HelloRequest, Helloworld_HelloReply>]
 }
 
 public final class Helloworld_GreeterClient: Helloworld_GreeterClientProtocol {
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions
+  public var interceptors: Helloworld_GreeterClientInterceptorFactoryProtocol?
 
   /// Creates a client for the helloworld.Greeter service.
   ///
   /// - Parameters:
   ///   - channel: `GRPCChannel` to the service host.
   ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
-  public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+  ///   - interceptors: A factory providing interceptors for each RPC.
+  public init(
+    channel: GRPCChannel,
+    defaultCallOptions: CallOptions = CallOptions(),
+    interceptors: Helloworld_GreeterClientInterceptorFactoryProtocol? = nil
+  ) {
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
+    self.interceptors = interceptors
   }
 }
 
+/// The greeting service definition.
+///
 /// To build a server, implement a class that conforms to this protocol.
 public protocol Helloworld_GreeterProvider: CallHandlerProvider {
-  /// Sends a greeting.
+  var interceptors: Helloworld_GreeterServerInterceptorFactoryProtocol? { get }
+
+  /// Sends a greeting
   func sayHello(request: Helloworld_HelloRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Helloworld_HelloReply>
 }
 
@@ -82,16 +105,29 @@ extension Helloworld_GreeterProvider {
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  public func handleMethod(_ methodName: Substring, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
-    switch methodName {
+  public func handle(
+    method name: Substring,
+    context: CallHandlerContext
+  ) -> GRPCServerHandlerProtocol? {
+    switch name {
     case "SayHello":
-      return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
-        return { request in
-          self.sayHello(request: request, context: context)
-        }
-      }
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Helloworld_HelloRequest>(),
+        responseSerializer: ProtobufSerializer<Helloworld_HelloReply>(),
+        interceptors: self.interceptors?.makeSayHelloInterceptors() ?? [],
+        userFunction: self.sayHello(request:context:)
+      )
 
-    default: return nil
+    default:
+      return nil
     }
   }
+}
+
+public protocol Helloworld_GreeterServerInterceptorFactoryProtocol {
+
+  /// - Returns: Interceptors to use when handling 'sayHello'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSayHelloInterceptors() -> [ServerInterceptor<Helloworld_HelloRequest, Helloworld_HelloReply>]
 }
