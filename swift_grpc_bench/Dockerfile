@@ -8,6 +8,6 @@ COPY swift_grpc_bench/Package.swift /app
 RUN swift package resolve
 
 COPY swift_grpc_bench /app
-RUN swift build -c release
+RUN swift build -c release -Xswiftc -enforce-exclusivity=unchecked
 
 ENTRYPOINT [ "/app/.build/release/Server" ]
