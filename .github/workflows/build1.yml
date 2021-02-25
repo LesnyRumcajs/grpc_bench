@@ -12,8 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build Docker images for the benchmarks
-      run: ./build.sh
+      run: ./build.sh [abcdefghijklm]*_bench
     - name: Run the benchmarks
-      run: ./bench.sh
+      run: ./bench.sh [abcdefghijklm]*_bench
       env:
         GRPC_BENCHMARK_DURATION: "30s"
