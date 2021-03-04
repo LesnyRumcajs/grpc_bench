@@ -1,0 +1,22 @@
+[package]
+name = "rust_grpcio"
+version = "0.1.0"
+authors = ["Trisfald <trisfald@gmail.com>"]
+edition = "2018"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[dependencies]
+grpcio = "0.8"
+protobuf = "~2"
+futures = "0.3"
+
+[build-dependencies]
+protoc-grpcio = "3.0"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/main.rs"
