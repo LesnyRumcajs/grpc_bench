@@ -47,11 +47,6 @@ class ServerImpl final {
     // Always shutdown the completion queue after the server.
     for (auto& cq : cq_)
       cq->Shutdown();
-
-    for (auto& thread : server_threads_) {
-      if (thread.joinable())
-        thread.join();
-    }
   }
 
   // There is no shutdown handling in this code.
@@ -76,10 +71,10 @@ class ServerImpl final {
 
     // Proceed to the server's main loop.
     for (int i = 0; i < parallelism; i++) {
-      server_threads_.emplace_back(std::thread([this, i] { this->HandleRpcs(i); }));
+      server_threads_.emplace_back(std::jthread([this, i] { this->HandleRpcs(i); }));
     }
 
-    for (;;) {}
+    std::this_thread::sleep_until(std::chrono::time_point<std::chrono::system_clock>::max());
   }
 
  private:
@@ -173,7 +168,7 @@ class ServerImpl final {
   std::vector<std::unique_ptr<ServerCompletionQueue>> cq_;
   Greeter::AsyncService service_;
   std::unique_ptr<Server> server_;
-  std::vector<std::thread> server_threads_;
+  std::vector<std::jthread> server_threads_;
 };
 
 int main(int argc, char** argv) {
