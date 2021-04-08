@@ -61,7 +61,7 @@ class ServerImpl final {
     builder.RegisterService(&service_);
     // Get hold of the completion queue used for the asynchronous communication
     // with the gRPC runtime.
-    auto parallelism = std::max(1u, std::thread::hardware_concurrency() / 4);
+    auto parallelism = std::atoi(std::getenv("GRPC_SERVER_CPUS"));
     for (int i = 0; i < parallelism; i++) {
       cq_.emplace_back(builder.AddCompletionQueue());
     }
