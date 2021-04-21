@@ -36,6 +36,7 @@ namespace GreeterServer
                 {
                     webBuilder.ConfigureKestrel(options =>
                     {
+                        options.AddServerHeader = false;
                         options.ListenAnyIP(50051, listenOptions =>
                         {
                             listenOptions.Protocols = HttpProtocols.Http2;
