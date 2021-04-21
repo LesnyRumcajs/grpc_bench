@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.5</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.8.0" />
-    <PackageReference Include="Grpc" Version="2.23.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.23.0" PrivateAssets="All" />
+    <PackageReference Include="Google.Protobuf" Version="3.16.0-rc1" />
+    <PackageReference Include="Grpc" Version="2.37.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.37.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
