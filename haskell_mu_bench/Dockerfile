@@ -5,4 +5,4 @@ COPY proto /app/proto
 
 RUN cd /app/haskell_mu_bench && cabal update && cabal install
 
-ENTRYPOINT /root/.cabal/bin/haskell-mu-bench
+ENTRYPOINT /app/haskell_mu_bench/run.sh
