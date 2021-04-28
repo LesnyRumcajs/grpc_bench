@@ -12,7 +12,7 @@ That being said, the service implementations should **NOT** take advantage of th
 Keep in mind the following guidelines:
 - No inline assembly or other, language specific, tricks / hacks should be used
 - The code should be (reasonably) idiomatic, built upon the modern patterns of the language
-- Don't make any assumption on the kind of work done inside the server's request handle
+- Don't make any assumption on the kind of work done inside the server's request handler
 - Don't assume all client requests will have the exact same content
 
 # You decide what is better
