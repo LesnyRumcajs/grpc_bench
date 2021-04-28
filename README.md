@@ -8,10 +8,10 @@ Contributions are most welcome!
 
 The goal of this benchmark is to compare the performance and resource usage of various gRPC libraries across different programming languages and technologies. To achieve that, a minimal protobuf contract is used to not pollute the results with other concepts (e.g. performances of hash maps) and to make the implementations simple.
 
-That being said, the service implementations should **NOT** take advantage of that and keep the code generic and maintainable. What does generic mean? One should be able to easily adapt the existing code to some fundamental use cases (e.g. having a thread-safe hash map on server side to provide values to client given some key or performing blocking I/O).\
+That being said, the service implementations should **NOT** take advantage of that and keep the code generic and maintainable. What does generic mean? One should be able to easily adapt the existing code to some fundamental use cases (e.g. having a thread-safe hash map on server side to provide values to client given some key, performing blocking I/O or retrieving a network resource).\
 Keep in mind the following guidelines:
 - No inline assembly or other, language specific, tricks / hacks should be used
-- The code should be (reasonably) ideomatic, built upon the modern patterns of the language
+- The code should be (reasonably) idiomatic, built upon the modern patterns of the language
 - Don't make any assumption on the kind of work done inside the server's request handle
 - Don't assume all client requests will have the exact same content
 
