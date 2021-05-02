@@ -10,7 +10,7 @@ for benchmark in ${BENCHMARKS_TO_BUILD}; do
 	echo "==> Building Docker image for ${benchmark}..."
 	( (
 		DOCKER_BUILDKIT=1 docker image build --force-rm --file "${benchmark}/Dockerfile" \
-			--tag "${benchmark##*/}" . >"${benchmark}.tmp" 2>&1 &&
+			--tag "${benchmark##*/}" . | tee "${benchmark}.tmp" 2>&1 &&
 			rm -f "${benchmark}.tmp" &&
 			echo "==> Done building ${benchmark}"
 	) || (
