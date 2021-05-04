@@ -10,6 +10,13 @@ RUN \
  && apk update && apk upgrade \
  && apk add git emacs-nox \
  && git version \
+
+# TODO (fenollp): drop this block once https://github.com/tsloughter/grpcbox_plugin/pull/16 is released.
+ && rebar3 get-deps \
+ && mkdir _checkouts \
+ && ln -s $PWD/_build/default/plugins/grpcbox_plugin _checkouts/ \
+ && sed -i 's%last_modified(Source) > filelib:last_modified%last_modified(Source) >= filelib:last_modified%' _build/default/plugins/grpcbox_plugin/src/grpcbox_plugin_prv.erl \
+
  && rebar3 --version \
  && rebar3 do get-deps, compile
 
@@ -20,10 +27,17 @@ COPY erlang_grpcbox_bench/src src
 RUN \
   --mount=type=cache,target=/root/.cache/rebar3 \
     set -x \
+
+# TODO (fenollp): and keep only the middle line
+ && mkdir -p /src/app/_build/default/lib/erlang_grpcbox_bench/ebin/ \
+ && rebar3 grpc gen --protos=./proto/helloworld \
+ && rm -r _checkouts \
+
  && git init \
  && git add -A . \
- && rebar3 do grpc gen, fmt \
- && git --no-pager diff && [[ 0 -eq $(git --no-pager diff --name-only | wc -l) ]]
+ && git reset -- src/*_{bhvr,client,pb}.erl \
+ && rebar3 fmt \
+ && git --no-pager diff && [[ 3 -eq $(git --no-pager diff --name-only | wc -l) ]]
 
 RUN \
   --mount=type=cache,target=/root/.cache/rebar3 \
