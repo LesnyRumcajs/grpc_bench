@@ -11,6 +11,6 @@ while true; do
 	(docker stats \
 		--no-stream \
 		--format "table {{.CPUPerc}}\t{{.MemUsage}}" \
-		"${NAME}" | grep -v CPU) | tee --append "${REPORT_DIR}"/"${NAME}".stats 2>/dev/null || break
+		"${NAME}" | grep -v CPU) >>"${REPORT_DIR}"/"${NAME}".stats 2>/dev/null || break
 	sleep 5 || break
 done

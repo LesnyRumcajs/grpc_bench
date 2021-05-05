@@ -46,7 +46,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
         --qps="${GRPC_CLIENT_QPS}" \
         --duration "${GRPC_BENCHMARK_DURATION}" \
         --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
-		127.0.0.1:50051 | tee "${RESULTS_DIR}/${NAME}".report
+		127.0.0.1:50051 >"${RESULTS_DIR}/${NAME}".report
 	cat "${RESULTS_DIR}/${NAME}".report | grep "Requests/sec" | sed -E 's/^ +/    /'
 
 	kill -INT %1 2>/dev/null
