@@ -57,7 +57,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--memory "${GRPC_SERVER_RAM}" \
 		-e GRPC_SERVER_CPUS \
 		-e GRPC_SERVER_RAM \
-		--network=host \
+		-p 50051:50051 \
 		--detach \
 		--tty \
 		"$GRPC_IMAGE_NAME:${NAME}-$GRPC_REQUEST_SCENARIO" >/dev/null
