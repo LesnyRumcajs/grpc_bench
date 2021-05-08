@@ -13,6 +13,7 @@ lto = true
 grpcio = "0.8"
 protobuf = "~2"
 futures = "0.3"
+mimalloc = { version = "0.1", default-features = false }
 
 [build-dependencies]
 protoc-grpcio = "3.0"
