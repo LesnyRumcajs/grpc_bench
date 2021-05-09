@@ -47,7 +47,7 @@ builder.Services.AddGrpc(o => o.IgnoreUnknownServices = true);
 builder.Services.Configure<RouteOptions>(c => c.SuppressCheckForUnhandledSecurityMetadata = true);
 builder.Services.AddSingleton<GreeterService>();
 
-await using var app = builder.Build();
+var app = builder.Build();
 
 app.Lifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
 app.UseMiddleware<ServiceProvidersMiddleware>();
