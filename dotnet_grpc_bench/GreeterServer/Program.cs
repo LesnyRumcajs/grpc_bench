@@ -38,10 +38,7 @@ builder.WebHost.ConfigureKestrel(options =>
 	});
 });
 
-builder.WebHost.ConfigureLogging(logging =>
-{
-	logging.ClearProviders();
-});
+builder.Logging.ClearProviders();
 
 builder.Services.AddGrpc(o => o.IgnoreUnknownServices = true);
 builder.Services.Configure<RouteOptions>(c => c.SuppressCheckForUnhandledSecurityMetadata = true);
@@ -51,10 +48,6 @@ var app = builder.Build();
 
 app.Lifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
 app.UseMiddleware<ServiceProvidersMiddleware>();
-app.UseRouting();
-app.UseEndpoints(endpoints =>
-{
-	endpoints.MapGrpcService<GreeterService>();
-});
+app.MapGrpcService<GreeterService>();
 
 await app.RunAsync();
