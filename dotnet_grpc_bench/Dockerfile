@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0
+FROM mcr.microsoft.com/dotnet/nightly/sdk:6.0
 
 WORKDIR /app
 COPY dotnet_grpc_bench /app

@@ -16,36 +16,38 @@
 
 #endregion
 
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using GreeterServer.Services;
+using GreeterServer;
+using System;
 
-namespace GreeterServer
+var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+	options.AddServerHeader = false;
+	options.ListenAnyIP(50051, listenOptions =>
+	{
+		listenOptions.Protocols = HttpProtocols.Http2;
+	});
+});
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.ConfigureKestrel(options =>
-                    {
-                        options.ListenAnyIP(50051, listenOptions =>
-                        {
-                            listenOptions.Protocols = HttpProtocols.Http2;
-                        });
-                    });
-                    webBuilder.ConfigureLogging(logging =>
-                    {
-                        logging.ClearProviders();
-                    });
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-}
+builder.Logging.ClearProviders();
+
+builder.Services.AddGrpc(o => o.IgnoreUnknownServices = true);
+builder.Services.Configure<RouteOptions>(c => c.SuppressCheckForUnhandledSecurityMetadata = true);
+builder.Services.AddSingleton<GreeterService>();
+
+var app = builder.Build();
+
+app.Lifetime.ApplicationStarted.Register(() => Console.WriteLine("Application started."));
+app.UseMiddleware<ServiceProvidersMiddleware>();
+app.MapGrpcService<GreeterService>();
+
+await app.RunAsync();
