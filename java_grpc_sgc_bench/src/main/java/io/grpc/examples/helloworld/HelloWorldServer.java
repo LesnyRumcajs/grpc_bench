@@ -76,7 +76,7 @@ public class HelloWorldServer {
      * Use a Direct Executor by default (best performance) since the GRPC
      * service in this code is guaranteed non-blocking
      */
-    var value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "direct");
+    var value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "workStealing");
     switch (value) {
       case "direct" -> sb = sb.directExecutor();
       case "single" -> sb = sb.executor(Executors.newSingleThreadExecutor());
