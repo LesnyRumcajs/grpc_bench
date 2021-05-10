@@ -35,7 +35,7 @@ class HelloWorldServer(val port: Int) {
         }
 
         var sb = ServerBuilder.forPort(port)
-                .addService(HelloWorldService())
+                              .addService(HelloWorldService())
 
         val value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "workStealing")
         when (value) {
