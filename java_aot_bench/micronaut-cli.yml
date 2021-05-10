@@ -1,6 +1,6 @@
-applicationType: grpc
-defaultPackage: com.example
+applicationType: default
+defaultPackage: helloworld 
 testFramework: junit
 sourceLanguage: java
 buildTool: gradle
-features: [annotation-api, app-name, gradle, grpc, java, java-application, junit, logback, readme, shade, yaml]
+features: [annotation-api, app-name, graalvm, gradle, http-client, java, java-application, junit, logback, netty-server, readme, shade, yaml]
