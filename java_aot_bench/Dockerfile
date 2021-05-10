@@ -1,4 +1,4 @@
-FROM oracle/graalvm-ce:20.1.0-java11-ol8 as rel
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-19.3.5 as rel
 
 WORKDIR /app
 COPY java_micronaut_bench /app
