@@ -1,0 +1,18 @@
+{application, erlang_grpcbox_bench,
+ [{description, "An OTP app for https://github.com/LesnyRumcajs/grpc_bench"}
+ ,{vsn, "0.1.0"}
+ ,{modules, []}
+ ,{registered, []}
+ ,{env, []}
+ ,{mod, {erlang_grpcbox_bench_app,[]}}
+ ,{applications, [kernel
+                 ,stdlib
+                 ,sasl
+                 ,flatlog
+                 ,ctx
+                 ,grpcbox
+                 ]}
+
+ ,{licenses, ["MIT"]}
+ ,{links, []}
+ ]}.
