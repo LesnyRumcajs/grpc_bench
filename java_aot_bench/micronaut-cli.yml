@@ -1,5 +1,6 @@
-profile: service
-defaultPackage: helloworld
----
+applicationType: default
+defaultPackage: helloworld 
 testFramework: junit
 sourceLanguage: java
+buildTool: gradle
+features: [annotation-api, app-name, graalvm, gradle, http-client, java, java-application, junit, logback, netty-server, readme, shade, yaml]

@@ -5,22 +5,21 @@ import com.google.protobuf.gradle.plugins
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
 
-val grpcVersion = "1.30.0"
-val grpcKotlinVersion = "0.1.3"
-val protobufVersion = "3.12.2"
-val coroutinesVersion = "1.3.7"
+val grpcVersion = "1.37.0"
+val grpcKotlinVersion = "1.1.0"
+val protobufVersion = "3.16.0"
+val coroutinesVersion = "1.4.3"
 
 plugins {
     application
-    kotlin("jvm") version "1.3.72"
-    id("com.google.protobuf") version "0.8.12"
-    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    kotlin("jvm") version "1.5.0"
+    id("com.google.protobuf") version "0.8.16"
+    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
 repositories {
     mavenLocal()
     google()
-    jcenter()
     mavenCentral()
 }
 
@@ -40,11 +39,11 @@ protobuf {
         artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     plugins {
-        id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+        id("grpc"){
+            artifact = "io.grpc:protoc-gen-grpc-java:1.37.0@exe"
         }
         id("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:$grpcKotlinVersion"
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.1.0:jdk7@jar"
         }
     }
     generateProtoTasks {
@@ -58,7 +57,7 @@ protobuf {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_16
 }
 
 application {

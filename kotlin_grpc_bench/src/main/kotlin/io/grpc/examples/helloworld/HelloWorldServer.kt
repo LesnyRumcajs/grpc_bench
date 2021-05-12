@@ -19,11 +19,35 @@ package io.grpc.examples.helloworld
 import io.grpc.Server
 import io.grpc.ServerBuilder
 
-class HelloWorldServer constructor(private val port: Int) {
-    val server: Server = ServerBuilder
-            .forPort(port)
-            .addService(HelloWorldService())
-            .build()
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
+import java.util.concurrent.Executors
+
+class HelloWorldServer(val port: Int) {
+    val server: Server
+
+    init {
+        val threads = System.getenv("JVM_EXECUTOR_THREADS")
+        var i_threads = Runtime.getRuntime().availableProcessors()
+        if (threads != null && !threads.isEmpty()) {
+          i_threads = Integer.parseInt(threads)
+        }
+
+        var sb = ServerBuilder.forPort(port)
+                              .addService(HelloWorldService())
+
+        val value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "workStealing")
+        when (value) {
+          "direct" -> sb = sb.directExecutor()
+          "single" -> sb = sb.executor(Executors.newSingleThreadExecutor())
+          "fixed" -> sb = sb.executor(Executors.newFixedThreadPool(i_threads))
+          "workStealing" -> sb = sb.executor(Executors.newWorkStealingPool(i_threads))
+          "cached" -> sb = sb.executor(Executors.newCachedThreadPool())
+        }
+
+        server = sb.build()
+    }
 
     fun start() {
         server.start()

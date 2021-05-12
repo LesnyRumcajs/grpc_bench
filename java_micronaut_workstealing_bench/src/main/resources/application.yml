@@ -1,0 +1,6 @@
+micronaut:
+    application:
+        name: hello-world-java
+grpc:
+    server:
+        port: 50051

@@ -1,5 +1,5 @@
 applicationType: grpc
-defaultPackage: helloworld 
+defaultPackage: com.example
 testFramework: junit
 sourceLanguage: java
 buildTool: gradle
