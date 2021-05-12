@@ -6,7 +6,8 @@ BENCHMARKS_TO_RUN="${@}"
 BENCHMARKS_TO_RUN="${BENCHMARKS_TO_RUN:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
 RESULTS_DIR="results/$(date '+%y%d%mT%H%M%S')"
-GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"30s"}
+GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"20s"}
+GRPC_BENCHMARK_WARMUP=${GRPC_BENCHMARK_WARMUP:-"5s"}
 GRPC_SERVER_CPUS=${GRPC_SERVER_CPUS:-"1"}
 GRPC_SERVER_RAM=${GRPC_SERVER_RAM:-"512m"}
 GRPC_CLIENT_CONNECTIONS=${GRPC_CLIENT_CONNECTIONS:-"50"}
@@ -22,22 +23,58 @@ export GRPC_CLIENT_CPUS
 
 docker pull infoblox/ghz:0.0.1
 
+# Loop over benchs
 for benchmark in ${BENCHMARKS_TO_RUN}; do
 	NAME="${benchmark##*/}"
 	echo "==> Running benchmark for ${NAME}..."
 
 	mkdir -p "${RESULTS_DIR}"
+
+	# Start the gRPC Server container
 	docker run --name "${NAME}" --rm \
 		--cpus "${GRPC_SERVER_CPUS}" \
 		--memory "${GRPC_SERVER_RAM}" \
 		-e GRPC_SERVER_CPUS \
+		-e GRPC_SERVER_RAM \
 		--network=host --detach --tty "${NAME}" >/dev/null
+
+	# Wait for server to be ready
 	sleep 5
+
+	# Warm up the service
+
+    if [[ "${GRPC_BENCHMARK_WARMUP}" != "0s" ]]; then
+      	echo -n "Warming up the service for ${GRPC_BENCHMARK_WARMUP}... "
+    	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
+    	    -v "${PWD}/payload:/payload:ro" \
+    		--cpus $GRPC_CLIENT_CPUS \
+    		ghz_bench:latest \
+    		--proto=/proto/helloworld/helloworld.proto \
+    		--call=helloworld.Greeter.SayHello \
+            --insecure \
+            --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
+            --connections="${GRPC_CLIENT_CONNECTIONS}" \
+            --qps="${GRPC_CLIENT_QPS}" \
+            --duration "${GRPC_BENCHMARK_WARMUP}" \
+            --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
+    		127.0.0.1:50051 > /dev/null
+
+    	echo "done."
+    else
+        echo "gRPC Server Warmup skipped."
+    fi
+
+	# Actual benchmark
+	echo "Benchmarking now... "
+
+	# Start collecting stats
 	./collect_stats.sh "${NAME}" "${RESULTS_DIR}" &
-	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro"\
-	    -v "${PWD}/payload:/payload:ro"\
+
+	# Start the gRPC Client
+	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
+	    -v "${PWD}/payload:/payload:ro" \
 		--cpus $GRPC_CLIENT_CPUS \
-		--entrypoint=ghz infoblox/ghz:0.0.1 \
+		ghz_bench:latest \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
         --insecure \
@@ -47,7 +84,13 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
         --duration "${GRPC_BENCHMARK_DURATION}" \
         --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
 		127.0.0.1:50051 >"${RESULTS_DIR}/${NAME}".report
-	cat "${RESULTS_DIR}/${NAME}".report | grep "Requests/sec" | sed -E 's/^ +/    /'
+
+	# Show quick summary (reqs/sec)
+	cat << EOF
+		done.
+		Results:
+		$(cat "${RESULTS_DIR}/${NAME}".report | grep "Requests/sec" | sed -E 's/^ +/    /')
+EOF
 
 	kill -INT %1 2>/dev/null
 	docker container stop "${NAME}" >/dev/null
@@ -58,6 +101,7 @@ Benchmark info:
 $(git log -1 --pretty="%h %cD %cn %s")
 Benchmarks run: $BENCHMARKS_TO_RUN
 GRPC_BENCHMARK_DURATION=$GRPC_BENCHMARK_DURATION
+GRPC_BENCHMARK_WARMUP=$GRPC_BENCHMARK_WARMUP
 GRPC_SERVER_CPUS=$GRPC_SERVER_CPUS
 GRPC_SERVER_RAM=$GRPC_SERVER_RAM
 GRPC_CLIENT_CONNECTIONS=$GRPC_CLIENT_CONNECTIONS
@@ -69,4 +113,8 @@ EOF
 
 sh analyze.sh $RESULTS_DIR
 
-echo "All done."
+cat << EOF
+$(cat ${RESULTS_DIR}/bench.params)
+
+All done.
+EOF

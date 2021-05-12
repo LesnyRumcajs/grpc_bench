@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Build ghz Docker image.
+# See ghz-tool/Dockerfile for details/version
+docker build -t ghz_bench:latest ./ghz-tool/
+
 ## The list of benchmarks to build
 BENCHMARKS_TO_BUILD="${@}"
 ##  ...or use all the *_bench dirs by default

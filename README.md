@@ -48,7 +48,8 @@ The benchmark can be configured through the following environment variables:
 
 |**Name**|**Description**|**Default value**|
 |--------|---------------|:---------------:|
-|GRPC_BENCHMARK_DURATION|Duration of the benchmark.|30s|
+|GRPC_BENCHMARK_DURATION|Duration of the benchmark.|20s|
+|GRPC_BENCHMARK_WARMUP|Duration of the warmup. Stats won't be collected.|5s|
 |GRPC_REQUEST_PAYLOAD|File (from [payload/](payload/)) containing the data to be sent in the client request.|100B|
 |GRPC_SERVER_CPUS|Maximum number of cpus used by the server.|1|
 |GRPC_SERVER_RAM|Maximum memory used by the server.|512m|
