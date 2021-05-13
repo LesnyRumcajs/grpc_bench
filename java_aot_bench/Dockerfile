@@ -10,4 +10,4 @@ RUN gu install native-image
 
 RUN native-image --no-server --static --no-fallback -jar /app/build/libs/app-0.1-all.jar
 
-ENTRYPOINT [ "/app/app-0.1-all" ]
+ENTRYPOINT [ "/app/hello-world-java" ]
