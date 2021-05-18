@@ -1,4 +1,4 @@
-FROM ruby:2.7-buster
+FROM ruby:3
 
 WORKDIR /app
 COPY ruby_grpc_bench /app

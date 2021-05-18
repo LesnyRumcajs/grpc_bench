@@ -12,6 +12,7 @@ docker run --name analyzer --rm \
 
 cat > ${RESULTS_DIR}/bench.params << EOF
 Benchmark Execution Parameters:
+$(git log -1 --pretty="%h %cD %cn %s")
  - GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION}
  - GRPC_BENCHMARK_WARMUP=${GRPC_BENCHMARK_WARMUP}
  - GRPC_SERVER_CPUS=${GRPC_SERVER_CPUS}
