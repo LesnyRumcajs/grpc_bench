@@ -1,13 +1,16 @@
-FROM hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12
+FROM hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12 as BUILDER
 
 WORKDIR /app
 COPY scala_akka_bench /app
 COPY proto/helloworld/helloworld.proto /app/src/main/protobuf/helloworld.proto
 
-RUN sbt compile
 RUN sbt assembly
 
-ENV GC "-XX:+UseParallelGC"
-ENV JAVA_OPTS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
+FROM adoptopenjdk:16_36-jdk-hotspot
 
-ENTRYPOINT ["/usr/local/openjdk-11/bin/java", "-jar", "/app/target/scala-2.13/akka-grpc-quickstart-scala-assembly-1.0.jar"]
+ENV GC "-XX:+UseParallelGC"
+ENV _JAVA_OPTIONS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
+
+COPY --from=builder /app/target/scala-2.13/akka-grpc-quickstart-scala-assembly-1.0.jar .
+
+ENTRYPOINT ["java", "-jar", "akka-grpc-quickstart-scala-assembly-1.0.jar"]
