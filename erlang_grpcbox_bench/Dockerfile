@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:experimental
 FROM erlang:23-alpine as builder
 
 WORKDIR /src/app
