@@ -13,18 +13,23 @@ end
 
 results = Hash.new { |hash, key| hash[key] = {} }
 Dir.glob("#{report_directory}/*.report").each do |file|
-  name = File.basename(file).split(/_bench.report/).first
-  results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
-  results[name][:ok_responses] = begin
-                                   File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
-                                 rescue StandardError
-                                   0
-                                 end
-  results[name][:avg_resp_time] = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
-  results[name][:_90pct] = File.read(file).scan(/\s*90 % in \s*(.*\w)/)[0][0]
-  results[name][:_95pct] = File.read(file).scan(/\s*95 % in \s*(.*\w)/)[0][0]
-  results[name][:_99pct] = File.read(file).scan(/\s*99 % in \s*(.*\w)/)[0][0]
-  results[name][:req_per_s] = results[name][:ok_responses] / results[name][:total_time]
+  begin
+    name = File.basename(file).split(/_bench.report/).first
+    results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
+    results[name][:ok_responses] = begin
+                                     File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
+                                   rescue StandardError
+                                     0
+                                   end
+    results[name][:avg_resp_time] = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
+    results[name][:_90pct] = File.read(file).scan(/\s*90 % in \s*(.*\w)/)[0][0]
+    results[name][:_95pct] = File.read(file).scan(/\s*95 % in \s*(.*\w)/)[0][0]
+    results[name][:_99pct] = File.read(file).scan(/\s*99 % in \s*(.*\w)/)[0][0]
+    results[name][:req_per_s] = results[name][:ok_responses] / results[name][:total_time]
+  rescue StandardError
+    puts "Failed miserably analysing #{name}."
+    raise
+  end
 end
 
 Dir.glob("#{report_directory}/*.stats").each do |file|
