@@ -53,9 +53,9 @@ Dir.glob("#{report_directory}/*.stats").each do |file|
   end
 end
 
-make_horizontal_line = -> { puts '-' * 128 }
+make_horizontal_line = -> { puts '-' * 137 }
 make_data_line = lambda do |*args|
-  puts "| #{args[0].to_s.ljust(18)} |" \
+  puts "| #{args[0].to_s.ljust(27)} |" \
        "#{args[1].to_s.rjust(8)} |" \
        "#{args[2].to_s.rjust(15)} |" \
        "#{args[3].to_s.rjust(15)} |" \
