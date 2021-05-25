@@ -1,2 +1,4 @@
 results/
 *.tmp
+.vscode/
+.metals/
