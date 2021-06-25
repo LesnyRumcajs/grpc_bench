@@ -1,4 +1,4 @@
-FROM rust:1.44.1-stretch
+FROM rust:1.53
 
 WORKDIR /app
 COPY rust_thruster_st_bench /app
