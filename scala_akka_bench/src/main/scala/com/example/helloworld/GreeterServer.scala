@@ -34,24 +34,21 @@ import scala.concurrent.Future
 
 //#server
 object GreeterServer {
-
   def main(args: Array[String]): Unit = {
-    // important to enable HTTP/2 in ActorSystem's config
-    val conf = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
-      .withFallback(ConfigFactory.defaultApplication())
-    val system = ActorSystem[Nothing](Behaviors.empty, "GreeterServer", conf)
-    new GreeterServer(system).run()
+    val system = ActorSystem[Nothing](Behaviors.empty, "GreeterServer")
+    new GreeterServer()(system).run()
   }
 }
 
-class GreeterServer(system: ActorSystem[_]) {
+class GreeterServer(implicit system: ActorSystem[_]) {
 
   def run(): Future[Http.ServerBinding] = {
-    implicit val sys = system
     implicit val ec: ExecutionContext = system.executionContext
 
     val service: HttpRequest => Future[HttpResponse] =
       GreeterHandler(new GreeterServiceImpl(system))
+
+    println(s"Parallel: ${system.settings.config.getString("akka.actor.default-dispatcher.fork-join-executor.parallelism-max")} GRPC_SERVER_CPUS: ${sys.env.get("GRPC_SERVER_CPUS")}")
 
     // Akka HTTP 10.1 requires adapters to accept the new actors APIs
     val bound = Http()(system.toClassic).bindAndHandleAsync(
