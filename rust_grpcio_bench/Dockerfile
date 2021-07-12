@@ -6,6 +6,7 @@ WORKDIR /app
 COPY rust_grpcio_bench /app
 COPY proto /app/src/proto
 
+ENV RUSTFLAGS="-C target-cpu=native"
 RUN cargo build --release
 
-ENTRYPOINT cargo run --release
+ENTRYPOINT ["./target/release/helloworld-server"]

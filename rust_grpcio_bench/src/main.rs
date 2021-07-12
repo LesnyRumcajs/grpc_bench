@@ -4,6 +4,7 @@ use std::io::Read;
 use std::sync::Arc;
 use std::{io, thread};
 
+use mimalloc::MiMalloc;
 use futures::channel::oneshot;
 use futures::executor::block_on;
 use futures::prelude::*;
@@ -11,6 +12,9 @@ use grpcio::{ChannelBuilder, Environment, RpcContext, ServerBuilder, UnarySink};
 
 use crate::proto::gen::helloworld::{HelloReply, HelloRequest};
 use crate::proto::gen::helloworld_grpc::{create_greeter, Greeter};
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 #[derive(Clone)]
 struct GreeterService;

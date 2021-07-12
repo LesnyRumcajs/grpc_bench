@@ -13,6 +13,7 @@ lto = true
 tonic = "0.4"
 prost = "0.7"
 tokio = { version = "1.4", features = ["rt", "macros", "io-util"] }
+mimalloc = { version = "0.1", default-features = false }
 
 [build-dependencies]
 tonic-build = "0.4"
