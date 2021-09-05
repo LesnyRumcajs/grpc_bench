@@ -1,6 +1,6 @@
-FROM gcc:10
+FROM gcc:11
 
-RUN apt update && apt install -y protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
+RUN apt-get update && apt-get install -y protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
 
 WORKDIR /app
 COPY cpp_grpc_st_bench /app
