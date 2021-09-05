@@ -27,8 +27,6 @@ export GRPC_REQUEST_PAYLOAD=${GRPC_REQUEST_PAYLOAD:-"100B"}
 # export GRPC_CLIENT_CONCURRENCY
 # export GRPC_CLIENT_QPS
 
-docker pull infoblox/ghz:0.0.1
-
 # Loop over benchs
 for benchmark in ${BENCHMARKS_TO_RUN}; do
 	NAME="${benchmark##*/}"
@@ -60,7 +58,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
             --insecure \
             --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
             --connections="${GRPC_CLIENT_CONNECTIONS}" \
-            --qps="${GRPC_CLIENT_QPS}" \
+            --rps="${GRPC_CLIENT_QPS}" \
             --duration "${GRPC_BENCHMARK_WARMUP}" \
             --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
     		127.0.0.1:50051 > /dev/null
@@ -86,7 +84,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
         --insecure \
         --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
         --connections="${GRPC_CLIENT_CONNECTIONS}" \
-        --qps="${GRPC_CLIENT_QPS}" \
+        --rps="${GRPC_CLIENT_QPS}" \
         --duration "${GRPC_BENCHMARK_DURATION}" \
         --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
 		127.0.0.1:50051 >"${RESULTS_DIR}/${NAME}".report
