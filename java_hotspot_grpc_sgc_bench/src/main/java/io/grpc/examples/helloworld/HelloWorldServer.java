@@ -72,10 +72,6 @@ public class HelloWorldServer {
       i_threads = Integer.parseInt(threads);
     }
 
-    /*
-     * Use a Direct Executor by default (best performance) since the GRPC
-     * service in this code is guaranteed non-blocking
-     */
     var value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "workStealing");
     switch (value) {
       case "direct" -> sb = sb.directExecutor();
