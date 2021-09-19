@@ -29,10 +29,7 @@ object MyMain extends ServerMain {
     val threads = System.getenv("JVM_EXECUTOR_THREADS")
     var i_threads = Runtime.getRuntime.availableProcessors
     if (threads != null && !threads.isEmpty) i_threads = threads.toInt
-    /*
-         * Use a Direct Executor by default (best performance) since the GRPC
-         * service in this code is guaranteed non-blocking
-         */
+
     val value = System.getenv.getOrDefault("JVM_EXECUTOR_TYPE", "workStealing")
     value match {
       case "direct" => sb.directExecutor
