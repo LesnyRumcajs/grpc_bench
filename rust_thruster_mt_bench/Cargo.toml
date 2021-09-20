@@ -18,6 +18,7 @@ log = "0.4"
 hyper = "0.13.1"
 http = "0.2"
 http-body = "0.3.1"
+jemallocator = "0.3.2"
 prost = "0.6"
 thruster = { version = "1.0.0", features = ["hyper_server"] }
 thruster-grpc = { git = "https://github.com/thruster-rs/thruster-grpc" }

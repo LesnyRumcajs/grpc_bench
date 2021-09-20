@@ -12,6 +12,9 @@ use grpcio::{ChannelBuilder, Environment, RpcContext, ServerBuilder, UnarySink};
 use crate::proto::gen::helloworld::{HelloReply, HelloRequest};
 use crate::proto::gen::helloworld_grpc::{create_greeter, Greeter};
 
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 #[derive(Clone)]
 struct GreeterService;
 
