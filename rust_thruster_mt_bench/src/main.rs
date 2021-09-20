@@ -9,6 +9,9 @@ use thruster_grpc::context::{generate_context, ProtoContext as Ctx};
 use thruster_grpc::server::ProtoServer;
 use thruster_grpc::util::{context_to_message, message_to_context};
 
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 mod hello_world {
     include!(concat!(env!("OUT_DIR"), "/helloworld.rs"));
 }
