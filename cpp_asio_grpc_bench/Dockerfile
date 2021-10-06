@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     protobuf-compiler \
     protobuf-compiler-grpc \
     libboost-dev \
-    libboost-coroutine-dev
+    libboost-coroutine-dev \
+    libjemalloc-dev
 
 WORKDIR /app
 
@@ -37,6 +38,8 @@ RUN mkdir build \
     && cmake \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/app/out \
+        -DCMAKE_C_FLAGS="-ljemalloc" \
+        -DCMAKE_CXX_FLAGS="-ljemalloc" \
         .. \
     && cmake --build . --config=Release --parallel=3 --target install
 
