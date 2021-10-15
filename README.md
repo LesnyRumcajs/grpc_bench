@@ -4,7 +4,7 @@ One repo to finally have a clear, objective gRPC benchmark with code for everyon
 
 Contributions are most welcome!
 
-See [Nexthink blog post](https://www.nexthink.com/blog/comparing-grpc-performance/) for a deeper overview of the repository and recent results.
+See [Nexthink blog post](https://www.nexthink.com/blog/comparing-grpc-performance/) for a deeper overview of the project and recent results.
 
 # Goal
 
