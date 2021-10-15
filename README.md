@@ -4,6 +4,8 @@ One repo to finally have a clear, objective gRPC benchmark with code for everyon
 
 Contributions are most welcome!
 
+See [Nexthink blog post](https://www.nexthink.com/blog/comparing-grpc-performance/) for a deeper overview of the repository and recent results.
+
 # Goal
 
 The goal of this benchmark is to compare the performance and resource usage of various gRPC libraries across different programming languages and technologies. To achieve that, a minimal protobuf contract is used to not pollute the results with other concepts (e.g. performances of hash maps) and to make the implementations simple.
