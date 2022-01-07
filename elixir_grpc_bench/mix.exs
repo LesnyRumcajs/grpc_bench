@@ -8,7 +8,8 @@ defmodule Helloworld.Mixfile do
       elixir: "~> 1.13",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -19,9 +20,19 @@ defmodule Helloworld.Mixfile do
   defp deps do
     [
       {:grpc, github: "elixir-grpc/grpc"},
+      # {:grpc, github: "eigr-labs/grpc"},
       {:protobuf, "~> 0.9.0", override: true},
       {:cowlib, "~> 2.11", override: true},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp releases() do
+    [
+      helloworld: [
+        include_executables_for: [:unix],
+        applications: [runtime_tools: :permanent]
+      ]
     ]
   end
 end
