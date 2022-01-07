@@ -1,9 +1,31 @@
 %{
-  "cowboy": {:hex, :cowboy, "2.9.0", "865dd8b6607e14cf03282e10e934023a1bd8be6f6bacf921a7e2a96d800cd452", [:make, :rebar3], [{:cowlib, "2.11.0", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "1.8.0", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm", "2c729f934b4e1aa149aff882f57c6372c15399a20d54f65c8d67bef583021bde"},
-  "cowlib": {:hex, :cowlib, "2.11.0", "0b9ff9c346629256c42ebe1eeb769a83c6cb771a6ee5960bd110ab0b9b872063", [:make, :rebar3], [], "hexpm", "2b3e9da0b21c4565751a6d4901c20d1b4cc25cbb7fd50d91d2ab6dd287bc86a9"},
-  "dialyxir": {:hex, :dialyxir, "0.5.1", "b331b091720fd93e878137add264bac4f644e1ddae07a70bf7062c7862c4b952", [:mix], [], "hexpm", "6c32a70ed5d452c6650916555b1f96c79af5fc4bf286997f8b15f213de786f73"},
-  "grpc": {:git, "https://github.com/elixir-grpc/grpc.git", "eff8a8828d27ddd7f63a3c1dd5aae86246df215e", []},
-  "gun": {:hex, :grpc_gun, "2.0.0", "f99678a2ab975e74372a756c86ec30a8384d3ac8a8b86c7ed6243ef4e61d2729", [:rebar3], [{:cowlib, "~> 2.8.0", [hex: :cowlib, repo: "hexpm", optional: false]}], "hexpm", "03dbbca1a9c604a0267a40ea1d69986225091acb822de0b2dbea21d5815e410b"},
-  "protobuf": {:hex, :protobuf, "0.9.0", "9c1633ecc098f3d7ec0a00503e070541b0e1868114fff41523934888442319e7", [:mix], [{:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm", "15fb7cddc5f85b8055fedaf81a9093020e4cd283647a21deb8f7de8d243abb9d"},
-  "ranch": {:hex, :ranch, "1.8.0", "8c7a100a139fd57f17327b6413e4167ac559fbc04ca7448e9be9057311597a1d", [:make, :rebar3], [], "hexpm", "49fbcfd3682fab1f5d109351b61257676da1a2fdbe295904176d5e521a2ddfe5"},
+  cowboy:
+    {:hex, :cowboy, "2.9.0", "865dd8b6607e14cf03282e10e934023a1bd8be6f6bacf921a7e2a96d800cd452",
+     [:make, :rebar3],
+     [
+       {:cowlib, "2.11.0", [hex: :cowlib, repo: "hexpm", optional: false]},
+       {:ranch, "1.8.0", [hex: :ranch, repo: "hexpm", optional: false]}
+     ], "hexpm", "2c729f934b4e1aa149aff882f57c6372c15399a20d54f65c8d67bef583021bde"},
+  cowlib:
+    {:hex, :cowlib, "2.11.0", "0b9ff9c346629256c42ebe1eeb769a83c6cb771a6ee5960bd110ab0b9b872063",
+     [:make, :rebar3], [], "hexpm",
+     "2b3e9da0b21c4565751a6d4901c20d1b4cc25cbb7fd50d91d2ab6dd287bc86a9"},
+  dialyxir:
+    {:hex, :dialyxir, "0.5.1", "b331b091720fd93e878137add264bac4f644e1ddae07a70bf7062c7862c4b952",
+     [:mix], [], "hexpm", "6c32a70ed5d452c6650916555b1f96c79af5fc4bf286997f8b15f213de786f73"},
+  grpc:
+    {:git, "https://github.com/elixir-grpc/grpc.git", "eff8a8828d27ddd7f63a3c1dd5aae86246df215e",
+     []},
+  gun:
+    {:hex, :grpc_gun, "2.0.0", "f99678a2ab975e74372a756c86ec30a8384d3ac8a8b86c7ed6243ef4e61d2729",
+     [:rebar3], [{:cowlib, "~> 2.8.0", [hex: :cowlib, repo: "hexpm", optional: false]}], "hexpm",
+     "03dbbca1a9c604a0267a40ea1d69986225091acb822de0b2dbea21d5815e410b"},
+  protobuf:
+    {:hex, :protobuf, "0.9.0", "9c1633ecc098f3d7ec0a00503e070541b0e1868114fff41523934888442319e7",
+     [:mix], [{:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: true]}], "hexpm",
+     "15fb7cddc5f85b8055fedaf81a9093020e4cd283647a21deb8f7de8d243abb9d"},
+  ranch:
+    {:hex, :ranch, "1.8.0", "8c7a100a139fd57f17327b6413e4167ac559fbc04ca7448e9be9057311597a1d",
+     [:make, :rebar3], [], "hexpm",
+     "49fbcfd3682fab1f5d109351b61257676da1a2fdbe295904176d5e521a2ddfe5"}
 }
