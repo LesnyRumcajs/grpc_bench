@@ -4,7 +4,7 @@ defmodule HelloworldApp do
   def start(_type, _args) do
     children = [
       {GRPC.Server.Supervisor,
-       {Helloworld.Endpoint, 50051, [num_acceptors: 1000, max_connections: 100_000]}}
+       {Helloworld.Endpoint, 50051, [num_acceptors: 1000, max_connections: 1_000_000]}}
     ]
 
     opts = [strategy: :one_for_one, name: HelloworldApp]

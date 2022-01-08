@@ -17,7 +17,8 @@ RUN mix do deps.get, compile
 
 RUN echo "+sbwt none" >> /app/rel/vm.args.eex \
     && echo "+sbwtdcpu none" >> /app/rel/vm.args.eex \
-    && echo "+sbwtdio none" >> /app/rel/vm.args.eex 
+    && echo "+sbwtdio none" >> /app/rel/vm.args.eex \
+    && echo "+K true" >> /app/rel/vm.args.eex 
 
 RUN mix release.init \
     && mix release
