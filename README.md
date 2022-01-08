@@ -52,7 +52,7 @@ The benchmark can be configured through the following environment variables:
 |--------|---------------|:---------------:|
 |GRPC_BENCHMARK_DURATION|Duration of the benchmark.|20s|
 |GRPC_BENCHMARK_WARMUP|Duration of the warmup. Stats won't be collected.|5s|
-|GRPC_REQUEST_PAYLOAD|File (from [payload/](payload/)) containing the data to be sent in the client request.|100B|
+|GRPC_REQUEST_SCENARIO|Scenario (from [scenarios/](scenarios/)) containing the protobuf and the data to be sent in the client request. It is advised to pass this argument to `build.sh` and run the former each time `helloworld.proto` is different from the previously ran scenario.|string_100B|
 |GRPC_SERVER_CPUS|Maximum number of cpus used by the server.|1|
 |GRPC_SERVER_RAM|Maximum memory used by the server.|512m|
 |GRPC_CLIENT_CONNECTIONS|Number of connections to use.|50|
@@ -67,6 +67,6 @@ The benchmark can be configured through the following environment variables:
 Other parameters will depend on your use-case. Choose wisely.
 
 # Results
-You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios. 
+You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.
 
 
