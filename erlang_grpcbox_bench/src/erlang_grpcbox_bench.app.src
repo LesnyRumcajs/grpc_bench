@@ -8,7 +8,6 @@
  ,{applications, [kernel
                  ,stdlib
                  ,sasl
-                 ,flatlog
                  ,ctx
                  ,grpcbox
                  ]}
