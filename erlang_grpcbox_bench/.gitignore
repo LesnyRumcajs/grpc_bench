@@ -12,8 +12,13 @@ log
 erl_crash.dump
 .rebar
 logs
-_build
 .idea
 *.iml
 rebar3.crashdump
 *~
+
+_build
+
+/src/helloworld_greeter_bhvr.erl
+/src/helloworld_greeter_client.erl
+/src/helloworld_pb.erl
