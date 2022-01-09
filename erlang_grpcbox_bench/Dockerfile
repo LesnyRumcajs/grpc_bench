@@ -1,67 +1,35 @@
-# syntax=docker/dockerfile:experimental
-FROM erlang:23-alpine as builder
+# syntax=docker.io/docker/dockerfile:1@sha256:42399d4635eddd7a9b8a24be879d2f9a930d0ed040a61324cfdf59ef1357b3b2
 
+FROM --platform=$BUILDPLATFORM docker.io/library/erlang:24.2.0.0@sha256:e4269291a69148b5f9b064c209dfd73ec9f805a09f91fec103282aa4d9899a34 AS erlang
+FROM --platform=$BUILDPLATFORM docker.io/library/erlang:24.2.0.0-slim@sha256:35030c81e286c332efe2240de4899a9d25cef629f379aeb2ec83b5b27da8d0f6 AS erlang-slim
+
+FROM erlang as builder
 WORKDIR /src/app
 COPY erlang_grpcbox_bench/rebar.* .
-
 RUN \
   --mount=type=cache,target=/root/.cache/rebar3 \
-  # --mount=type=cache,target=/var/cache/apk ln -vs /var/cache/apk /etc/apk/cache && \
     set -x \
- # && apk update && apk upgrade \
- # && apk add git emacs-nox \
- # && git version \
-
-# TODO (fenollp): drop this block once https://github.com/tsloughter/grpcbox_plugin/pull/16 is released.
- && rebar3 get-deps \
- && mkdir _checkouts \
- && ln -s $PWD/_build/default/plugins/grpcbox_plugin _checkouts/ \
- && sed -i 's%last_modified(Source) > filelib:last_modified%last_modified(Source) >= filelib:last_modified%' _build/default/plugins/grpcbox_plugin/src/grpcbox_plugin_prv.erl \
-
  && rebar3 --version \
  && rebar3 do get-deps, compile
-
 COPY proto proto
+RUN \
+  --mount=type=cache,target=/root/.cache/rebar3 \
+    set -x \
+ && rebar3 do grpc gen, compile, xref
 COPY erlang_grpcbox_bench/config config
-COPY erlang_grpcbox_bench/src src
-
+COPY erlang_grpcbox_bench/src/* src/
 RUN \
   --mount=type=cache,target=/root/.cache/rebar3 \
     set -x \
-
- # && git init \
- # && git add -A . \
- # && git reset -- src/*_{bhvr,client,pb}.erl \
- # && rebar3 fmt \
- # && git --no-pager diff && [[ 3 -eq $(git --no-pager diff --name-only | wc -l) ]] \
-
-# TODO (fenollp): and keep only the middle line
- && mkdir -p /src/app/_build/default/lib/erlang_grpcbox_bench/ebin/ \
- && rebar3 grpc gen --protos=./proto/helloworld \
- && rm -r _checkouts
-
-RUN \
-  --mount=type=cache,target=/root/.cache/rebar3 \
-    set -x \
+ && rebar3 do compile, xref \
  && rebar3 as prod tar \
  && mkdir -p /opt/rel \
- && tar -zxf $PWD/_build/prod/rel/*/*.tar.gz -C /opt/rel
+ && tar -zxf _build/prod/rel/*/*.tar.gz -C /opt/rel
 
-# ---
 
-FROM alpine:3.13
-
+FROM erlang-slim AS release
 WORKDIR /app
 COPY --from=builder /opt/rel .
-
-RUN \
-    set -x \
- && apk update && apk upgrade \
- && apk add openssl-dev ncurses \
- && rm -r /var/cache/apk/* \
- && ln -s $PWD/bin/erlang_grpcbox_bench $PWD/bin/rel
-
 EXPOSE 50051
-
-ENTRYPOINT ["/app/bin/rel"]
+ENTRYPOINT ["/app/bin/erlang_grpcbox_bench"]
 CMD ["foreground"]
