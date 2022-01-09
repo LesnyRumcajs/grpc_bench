@@ -8,7 +8,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 $http = new Swoole\Http\Server('0.0.0.0', 50051, SWOOLE_BASE);
 $http->set([
-    'trace_flags' => 0,
+    'worker_num' => swoole_cpu_num(),
     'log_file' => '/dev/null',
     'log_level' => 5,
     'open_http2_protocol' => true
