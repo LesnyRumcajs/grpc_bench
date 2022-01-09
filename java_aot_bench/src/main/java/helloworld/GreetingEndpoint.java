@@ -22,8 +22,7 @@ public class GreetingEndpoint extends GreeterGrpc.GreeterImplBase { // <1>
     @Override
     public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
         // <3>
-        final String message = greetingService.sayHello(request.getName());
-        HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
+        final var reply = HelloReply.newBuilder().setResponse(request.getRequest()).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
