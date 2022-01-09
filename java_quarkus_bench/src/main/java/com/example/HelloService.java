@@ -12,7 +12,7 @@ public class HelloService extends MutinyGreeterGrpc.GreeterImplBase {
     @Override
     public Uni<HelloReply> sayHello(HelloRequest request) {
         return Uni.createFrom().item(
-                HelloReply.newBuilder().setMessage(request.getName()).build()
+                HelloReply.newBuilder().setResponse(request.getRequest()).build()
         );
     }
 }
