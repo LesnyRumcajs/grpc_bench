@@ -25,7 +25,7 @@ pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> Middlewa
     Ok(message_to_context(
         context,
         hello_world::HelloReply {
-            message: hello_world_request.name,
+            response: hello_world_request.request,
         },
     )
     .await)
