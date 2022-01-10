@@ -8,5 +8,5 @@ import zio.{ZEnv, ZIO}
 
 object GreeterImpl extends ZGreeter[ZEnv, Any] {
   override def sayHello(request: HelloRequest): ZIO[ZEnv, Status, HelloReply] =
-    ZIO.succeed(HelloReply(s"${request.name}"))
+    ZIO.succeed(HelloReply(request.request))
 }
