@@ -1,0 +1,12 @@
+-name erlang_grpcbox_bench@127.0.0.1
+-setcookie erlang_grpcbox_bench
+
+# https://www.erlang.org/doc/man/erl.html
+
++A 10
+
++K true
+
++sbwt none
++sbwtdcpu none
++sbwtdio none
