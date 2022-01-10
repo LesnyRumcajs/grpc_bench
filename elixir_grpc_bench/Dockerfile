@@ -15,4 +15,12 @@ RUN protoc --proto_path=/app/proto/helloworld --elixir_out=plugins=grpc:./lib/ h
 ENV MIX_ENV=prod
 RUN mix do deps.get, compile
 
-ENTRYPOINT [ "mix", "grpc.server" ]
+RUN echo "+sbwt none" >> /app/rel/vm.args.eex \
+    && echo "+sbwtdcpu none" >> /app/rel/vm.args.eex \
+    && echo "+sbwtdio none" >> /app/rel/vm.args.eex \
+    && echo "+K true" >> /app/rel/vm.args.eex 
+
+RUN mix release.init \
+    && mix release
+
+CMD ["/app/_build/prod/rel/helloworld/bin/helloworld", "start"]
