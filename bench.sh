@@ -15,7 +15,7 @@ export GRPC_CLIENT_CONCURRENCY=${GRPC_CLIENT_CONCURRENCY:-"1000"}
 export GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
 export GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
-export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"string_100B"}
+export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.

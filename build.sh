@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"string_100B"}
+export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 
 # Build ghz Docker image.
 # See ghz-tool/Dockerfile for details/version
