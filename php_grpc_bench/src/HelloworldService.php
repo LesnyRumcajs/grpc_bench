@@ -13,6 +13,6 @@ class HelloworldService implements GreeterInterface
     public function SayHello(ContextInterface $ctx, HelloRequest $in): HelloReply
     {
         $out = new HelloReply();
-        return $out->setMessage($in->getName());
+        return $out->setResponse($in->getRequest());
     }
 }

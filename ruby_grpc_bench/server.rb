@@ -29,7 +29,7 @@ require 'helloworld_services_pb'
 class GreeterServer < Helloworld::Greeter::Service
   # say_hello implements the SayHello rpc method.
   def say_hello(hello_req, _unused_call)
-    Helloworld::HelloReply.new(message: hello_req.name)
+    Helloworld::HelloReply.new(response: hello_req.request)
   end
 end
 
@@ -40,7 +40,7 @@ def main
   s.add_http2_port('0.0.0.0:50051', :this_port_is_insecure)
   puts 'Listening on 50051'
   s.handle(GreeterServer)
-  # Runs the server with SIGHUP, SIGINT and SIGQUIT signal handlers to 
+  # Runs the server with SIGHUP, SIGINT and SIGQUIT signal handlers to
   #   gracefully shutdown.
   # User could also choose to run server via call to run_till_terminated
   s.run_till_terminated_or_interrupted([1, 'int', 'SIGQUIT'])
