@@ -53,14 +53,14 @@ public class HelloWorldServer {
 
   /**
    * Allow customization of the Executor with two environment variables:
-   * 
+   *
    * <p>
    * <ul>
    * <li>JVM_EXECUTOR_TYPE: direct, workStealing, single, fixed, cached</li>
    * <li>JVM_EXECUTOR_THREADS: integer value.</li>
    * </ul>
    * </p>
-   * 
+   *
    * The number of Executor Threads will default to the number of
    * availableProcessors(). Only the workStealing and fixed executors will use
    * this value.
@@ -107,7 +107,7 @@ public class HelloWorldServer {
 
     @Override
     public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-      var reply = HelloReply.newBuilder().setMessage(req.getName()).build();
+      final var reply = HelloReply.newBuilder().setResponse(req.getRequest()).build();
       responseObserver.onNext(reply);
       responseObserver.onCompleted();
     }

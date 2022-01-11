@@ -20,7 +20,7 @@ impl Greeter for MyGreeter {
         request: Request<HelloRequest>,
     ) -> Result<Response<HelloReply>, Status> {
         let reply = hello_world::HelloReply {
-            message: request.into_inner().name,
+            response: request.into_inner().request,
         };
         Ok(Response::new(reply))
     }

@@ -6,7 +6,7 @@ require "./protobufs/helloworld.pb"
 
 class HelloWorldHandler < Helloworld::Greeter
   def say_hello(request : Helloworld::HelloRequest) : Helloworld::HelloReply
-    Helloworld::HelloReply.new(message: request.name)
+    Helloworld::HelloReply.new(response: request.request)
   end
 end
 

@@ -9,5 +9,5 @@ import scala.concurrent.Future
 
 class GreeterServiceImpl extends GreeterFs2Grpc[IO, io.grpc.Metadata] {
   override def sayHello(request: HelloRequest, ctx: io.grpc.Metadata): IO[HelloReply] =
-    IO.pure(HelloReply(s"${request.name}"))
+    IO.pure(HelloReply(request.request))
 }

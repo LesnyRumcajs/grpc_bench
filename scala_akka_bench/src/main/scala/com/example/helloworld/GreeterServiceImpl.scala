@@ -21,13 +21,13 @@ class GreeterServiceImpl(system: ActorSystem[_]) extends Greeter {
   //#service-request-reply
   val (inboundHub: Sink[HelloRequest, NotUsed], outboundHub: Source[HelloReply, NotUsed]) =
     MergeHub.source[HelloRequest]
-    .map(request => HelloReply(s"${request.name}"))
+    .map(request => HelloReply(request.request))
       .toMat(BroadcastHub.sink[HelloReply])(Keep.both)
       .run()
   //#service-request-reply
 
   override def sayHello(request: HelloRequest): Future[HelloReply] = {
-    Future.successful(HelloReply(s"${request.name}"))
+    Future.successful(HelloReply(request.request))
   }
 }
 //#service-stream

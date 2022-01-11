@@ -19,13 +19,13 @@ import NIO
 
 class GreeterProvider: Helloworld_GreeterProvider {
   var interceptors: Helloworld_GreeterServerInterceptorFactoryProtocol? { nil }
-  
+
   func sayHello(
     request: Helloworld_HelloRequest,
     context: StatusOnlyCallContext
   ) -> EventLoopFuture<Helloworld_HelloReply> {
     let response = Helloworld_HelloReply.with {
-      $0.message = "\(request.name)"
+      $0.response = "\(request.request)"
     }
     return context.eventLoop.makeSucceededFuture(response)
   }

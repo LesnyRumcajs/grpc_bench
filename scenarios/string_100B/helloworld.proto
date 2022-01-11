@@ -28,12 +28,18 @@ service Greeter {
   rpc SayHello (HelloRequest) returns (HelloReply) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
+// The actual message exchanged by the client and the server.
+// NOTE: When creating a custom scenario plese edit only this message.
+message Hello {
   string name = 1;
 }
 
-// The response message containing the greetings
+// The request message from the client.
+message HelloRequest {
+  Hello request = 1;
+}
+
+// The response message from the server.
 message HelloReply {
-  string message = 1;
+  Hello response = 1;
 }

@@ -21,7 +21,7 @@ impl Greeter for MyGreeter {
         request: Request<HelloRequest>,
     ) -> Result<Response<HelloReply>, Status> {
         let reply = hello_world::HelloReply {
-            message: request.into_inner().name,
+            response: request.into_inner().request,
         };
         Ok(Response::new(reply))
     }
@@ -31,10 +31,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cpus = std::env::var("GRPC_SERVER_CPUS")
         .map(|v| v.parse().unwrap())
         .unwrap_or(1);
-    
+
     println!("Running with {} threads", cpus);
 
-    // Esentially the same as tokio::main, but with number of threads set to 
+    // Esentially the same as tokio::main, but with number of threads set to
     // avoid thrashing when cggroup limits are applied by Docker.
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(cpus)

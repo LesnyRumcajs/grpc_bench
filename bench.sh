@@ -15,7 +15,7 @@ export GRPC_CLIENT_CONCURRENCY=${GRPC_CLIENT_CONCURRENCY:-"1000"}
 export GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
 export GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
-export GRPC_REQUEST_PAYLOAD=${GRPC_REQUEST_PAYLOAD:-"100B"}
+export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.
@@ -33,6 +33,12 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	echo "==> Running benchmark for ${NAME}..."
 
 	mkdir -p "${RESULTS_DIR}"
+
+	# Setup the chosen scenario
+    if ! sh setup_scenario.sh $GRPC_REQUEST_SCENARIO true; then
+  		echo "Scenario setup fiascoed."
+  		exit 1
+	fi
 
 	# Start the gRPC Server container
 	docker run --name "${NAME}" --rm \
@@ -60,7 +66,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
             --connections="${GRPC_CLIENT_CONNECTIONS}" \
             --rps="${GRPC_CLIENT_QPS}" \
             --duration "${GRPC_BENCHMARK_WARMUP}" \
-            --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
+            --data-file /payload/payload \
     		127.0.0.1:50051 > /dev/null
 
     	echo "done."
@@ -86,7 +92,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
         --connections="${GRPC_CLIENT_CONNECTIONS}" \
         --rps="${GRPC_CLIENT_QPS}" \
         --duration "${GRPC_BENCHMARK_DURATION}" \
-        --data-file /payload/"${GRPC_REQUEST_PAYLOAD}" \
+        --data-file /payload/payload \
 		127.0.0.1:50051 >"${RESULTS_DIR}/${NAME}".report
 
 	# Show quick summary (reqs/sec)

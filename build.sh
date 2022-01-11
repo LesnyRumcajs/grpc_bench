@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
+
 # Build ghz Docker image.
 # See ghz-tool/Dockerfile for details/version
 docker build -t ghz_bench:latest ./ghz-tool/
@@ -8,6 +10,12 @@ docker build -t ghz_bench:latest ./ghz-tool/
 BENCHMARKS_TO_BUILD="${@}"
 ##  ...or use all the *_bench dirs by default
 BENCHMARKS_TO_BUILD="${BENCHMARKS_TO_BUILD:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
+
+# Setup the chosen scenario
+if ! sh setup_scenario.sh $GRPC_REQUEST_SCENARIO false; then
+	echo "Scenario setup fiascoed."
+	exit 1
+fi
 
 builds=""
 for benchmark in ${BENCHMARKS_TO_BUILD}; do

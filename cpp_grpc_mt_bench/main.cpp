@@ -109,7 +109,7 @@ class ServerImpl final {
         new CallData(service_, cq_);
 
         // The actual processing.
-        reply_.set_message(request_.name());
+        *reply_.mutable_response() = std::move(*request_.mutable_request());
 
         // And we are done! Let the gRPC runtime know we've finished, using the
         // memory address of this instance as the uniquely identifying tag for

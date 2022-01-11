@@ -9,6 +9,6 @@
 -spec say_hello(ctx:ctx(), helloworld_pb:hello_request()) ->
           {ok, helloworld_pb:hello_reply(), ctx:ctx()} | grpcbox_stream:grpc_error_response().
 
-say_hello(Ctx, #{name := Name}) ->
-    Rep = #{message => Name},
+say_hello(Ctx, #{request := Request}) ->
+    Rep = #{response => Request},
     {ok, Rep, Ctx}.

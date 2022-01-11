@@ -52,7 +52,7 @@ The benchmark can be configured through the following environment variables:
 |--------|---------------|:---------------:|
 |GRPC_BENCHMARK_DURATION|Duration of the benchmark.|20s|
 |GRPC_BENCHMARK_WARMUP|Duration of the warmup. Stats won't be collected.|5s|
-|GRPC_REQUEST_PAYLOAD|File (from [payload/](payload/)) containing the data to be sent in the client request.|100B|
+|GRPC_REQUEST_SCENARIO|Scenario (from [scenarios/](scenarios/)) containing the protobuf and the data to be sent in the client request.|complex_proto|
 |GRPC_SERVER_CPUS|Maximum number of cpus used by the server.|1|
 |GRPC_SERVER_RAM|Maximum memory used by the server.|512m|
 |GRPC_CLIENT_CONNECTIONS|Number of connections to use.|50|
@@ -63,10 +63,11 @@ The benchmark can be configured through the following environment variables:
 ### Parameter recommendations
 * `GRPC_BENCHMARK_DURATION` should not be too small. Some implementations need a *warm-up* before achieving their optimal performance and most real-life gRPC services are expected to be long running processes. From what we measured, **300s** should be enough.
 * `GRPC_SERVER_CPUS` + `GRPC_CLIENT_CPUS` should not exceed total number of cores on the machine. The reason for this is that you don't want the `ghz` client to steal precious CPU cycles from the service under test. Keep in mind that having the `GRPC_CLIENT_CPUS` too low may not saturate the service in some of the more performant implementations. Also keep in mind limiting the number of `GRPC_SERVER_CPUS` to 1 will severely hamper the performance for some technologies - is running a service on 1 CPU your use case? It may be, but keep in mind eventual load balancer also incurs some costs.
+* `GRPC_REQUEST_SCENARIO` is a parameter to both `build.sh` and `bench.sh`. The images must be rebuilt each time you intend to use a scenario having a different `helloworld.proto` from the one ran previously.
 
 Other parameters will depend on your use-case. Choose wisely.
 
 # Results
-You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios. 
+You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios.
 
 

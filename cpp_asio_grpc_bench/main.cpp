@@ -49,7 +49,7 @@ void spawn_accept_loop(
         return;
       }
       helloworld::HelloReply response;
-      response.set_message(context->request.name());
+      *response.mutable_response() = std::move(*context->request.mutable_request());
       auto &writer = context->writer;
       agrpc::finish(writer, response, grpc::Status::OK,
                     boost::asio::bind_executor(

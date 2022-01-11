@@ -72,7 +72,7 @@ class HelloWorldServer(val port: Int) {
     private class HelloWorldService : GreeterGrpcKt.GreeterCoroutineImplBase() {
         override suspend fun sayHello(request: HelloRequest) = HelloReply
                 .newBuilder()
-                .setMessage("${request.name}")
+                .setResponse(request.getRequest())
                 .build()
     }
 }
