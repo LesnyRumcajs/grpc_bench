@@ -1,7 +1,7 @@
 #!/bin/sh
 
 SCENARIO=$1
-PAYLOAD=$2
+COPY_PAYLOAD=$2
 
 rm -rf proto
 mkdir -p proto/helloworld
