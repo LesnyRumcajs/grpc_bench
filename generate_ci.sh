@@ -32,18 +32,6 @@ env:
   GRPC_BENCHMARK_DURATION: 30s
 
 jobs:
-  shellcheck:
-    runs-on: ubuntu-latest
-    env:
-      VSN: v0.8.0
-    steps:
-    - uses: actions/checkout@v2
-    - run: |
-        wget -qO- "https://github.com/koalaman/shellcheck/releases/download/\$VSN/shellcheck-\$VSN.linux.x86_64.tar.xz" | tar -xJv
-        ./shellcheck-\$VSN/shellcheck --version
-    # TODO: \$(find . -type f -name '*.sh')
-    - run: ./shellcheck-\$VSN/shellcheck ./generate_ci.sh
-
   meta-check:
     runs-on: ubuntu-latest
     steps:
@@ -127,6 +115,6 @@ EOF
 
     # TODO: delete all other tags
 
-    done < <(find scenarios/ -type d | tail -n+2 | sort)
+    done < <(find scenarios/ -maxdepth 1 -type d | tail -n+2 | sort)
 # done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
 done < <(printf 'rust_tonic_mt_bench\npython_async_grpc_bench\n' | sort)

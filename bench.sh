@@ -52,7 +52,6 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--network=host \
 		--detach \
 		--tty \
-		--pull always \
 		"$GRPC_IMAGE_NAME:${NAME}-$GRPC_REQUEST_SCENARIO" >/dev/null
 
 	# Wait for server to be ready
