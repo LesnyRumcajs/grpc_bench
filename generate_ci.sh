@@ -54,9 +54,12 @@ while read -r bench; do
 EOF
     docker_login_then_checkout
     cat <<EOF
-    - run: ./build.sh $bench
-    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-complex_proto \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
-    - run: docker push \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
+    - name: Build $bench
+      run: ./build.sh $bench
+    - name: Push tag $bench-complex_proto-\$GITHUB_REF_NAME
+      run: |
+        docker tag  \$GRPC_IMAGE_NAME:$bench-complex_proto \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
+        docker push \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
 
 EOF
 
@@ -74,9 +77,12 @@ EOF
 EOF
             docker_login_then_checkout
             cat <<EOF
-    - run: docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
-    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
-    - run: ./bench.sh $bench
+    - name: Retrieve tag $bench-$scenario-\$GITHUB_REF_NAME
+      run: |
+        docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+        docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
+    - name: Benchmark $bench
+      run: ./bench.sh $bench
     - name: If on master push naked image as well
       if: \${{ github.ref == 'refs/heads/master' }}
       run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
@@ -102,11 +108,15 @@ EOF
 EOF
         docker_login_then_checkout
         cat <<EOF
-    - run: GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench
-    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
-    - run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
-    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
-    - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
+    - name: Build $bench with $scenario
+      run: GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench
+    - name: Push tag $bench-$scenario-\$GITHUB_REF_NAME
+      run: |
+        docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+        docker push \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+        docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
+    - name: Benchmark $bench with $scenario
+      run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
     - name: If on master push naked image as well
       if: \${{ github.ref == 'refs/heads/master' }}
       run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario

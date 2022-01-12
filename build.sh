@@ -37,7 +37,7 @@ for benchmark in ${BENCHMARKS_TO_BUILD}; do
 			echo "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO"
 			echo "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO-$branch"
 		done < <(find scenarios/ -maxdepth 1 -type d | tail -n+2 | sort) \
-			| xargs -n1 docker pull --quiet >/dev/null 2>&1 || true
+			| xargs -n1 docker pull || true
 	fi
 
 	echo "==> Building Docker image for ${benchmark}..."
