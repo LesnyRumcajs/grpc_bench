@@ -20,6 +20,19 @@ docker_login_then_checkout() {
 EOF
 }
 
+run_or_retry() {
+    local name="$1"; shift
+    local command="$1"; shift
+    cat <<EOF
+    - name: $name
+      uses: Wandalen/wretry.action@v1
+      with:
+        command: $command
+        attempt_limit: 5
+        attempt_delay: 2337
+EOF
+}
+
 cat <<EOF
 name: CI
 
@@ -53,9 +66,8 @@ while read -r bench; do
     steps:
 EOF
     docker_login_then_checkout
+    run_or_retry "Build $bench" "./build.sh $bench"
     cat <<EOF
-    - name: Build $bench
-      run: ./build.sh $bench
     - name: Push tag $bench-complex_proto-\$GITHUB_REF_NAME
       run: |
         docker tag  \$GRPC_IMAGE_NAME:$bench-complex_proto \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
@@ -81,8 +93,9 @@ EOF
       run: |
         docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
         docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
-    - name: Benchmark $bench
-      run: ./bench.sh $bench
+EOF
+            run_or_retry "Benchmark $bench" "./bench.sh $bench"
+            cat <<EOF
     - name: If on master push naked image as well
       if: \${{ github.ref == 'refs/heads/master' }}
       run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
@@ -107,16 +120,16 @@ EOF
     steps:
 EOF
         docker_login_then_checkout
+        run_or_retry "Build $bench with $scenario" "GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench"
         cat <<EOF
-    - name: Build $bench with $scenario
-      run: GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench
     - name: Push tag $bench-$scenario-\$GITHUB_REF_NAME
       run: |
         docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
         docker push \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
         docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
-    - name: Benchmark $bench with $scenario
-      run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
+EOF
+        run_or_retry "Benchmark $bench with $scenario" "GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench"
+        cat <<EOF
     - name: If on master push naked image as well
       if: \${{ github.ref == 'refs/heads/master' }}
       run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
