@@ -7,7 +7,7 @@ echo "Benchmark finished. Detailed results are located in: ${RESULTS_DIR}"
 docker run --name analyzer --rm \
 	-v "${PWD}/analyze:/analyze:ro" \
 	-v "${PWD}/${RESULTS_DIR}:/reports:ro" \
-	ruby:2.7-buster ruby /analyze/results_analyze.rb reports ||
+	ruby:2.7-slim-buster ruby /analyze/results_analyze.rb reports ||
 	exit 1
 
 cat > ${RESULTS_DIR}/bench.params << EOF

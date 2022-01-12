@@ -1,0 +1,3203 @@
+name: "B&B scenario: complex_proto"
+
+on:
+  push:
+  pull_request:
+
+env:
+  GRPC_IMAGE_NAME: localhost:5000/grpc_bench
+  GRPC_REQUEST_SCENARIO: complex_proto
+
+jobs:
+  meta-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: ./generate_ci.sh | tee .github/workflows/build.yml
+    - run: git --no-pager diff --exit-code
+
+  build-cpp_asio_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_asio_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build cpp_asio_grpc_bench
+      run: ./build.sh cpp_asio_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-cpp_asio_grpc:
+    runs-on: ubuntu-latest
+    needs: build-cpp_asio_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_asio_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark cpp_asio_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh cpp_asio_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:cpp_asio_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-cpp_grpc_mt:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_grpc_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build cpp_grpc_mt_bench
+      run: ./build.sh cpp_grpc_mt_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-cpp_grpc_mt:
+    runs-on: ubuntu-latest
+    needs: build-cpp_grpc_mt
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_grpc_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark cpp_grpc_mt_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh cpp_grpc_mt_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:cpp_grpc_mt_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-cpp_grpc_st:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_grpc_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build cpp_grpc_st_bench
+      run: ./build.sh cpp_grpc_st_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-cpp_grpc_st:
+    runs-on: ubuntu-latest
+    needs: build-cpp_grpc_st
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'cpp_grpc_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark cpp_grpc_st_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh cpp_grpc_st_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:cpp_grpc_st_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-crystal_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'crystal_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build crystal_grpc_bench
+      run: ./build.sh crystal_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-crystal_grpc:
+    runs-on: ubuntu-latest
+    needs: build-crystal_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'crystal_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark crystal_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh crystal_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:crystal_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-csharp_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'csharp_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build csharp_grpc_bench
+      run: ./build.sh csharp_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-csharp_grpc:
+    runs-on: ubuntu-latest
+    needs: build-csharp_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'csharp_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark csharp_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh csharp_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:csharp_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-dotnet_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'dotnet_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build dotnet_grpc_bench
+      run: ./build.sh dotnet_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-dotnet_grpc:
+    runs-on: ubuntu-latest
+    needs: build-dotnet_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'dotnet_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark dotnet_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh dotnet_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:dotnet_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-elixir_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'elixir_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build elixir_grpc_bench
+      run: ./build.sh elixir_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-elixir_grpc:
+    runs-on: ubuntu-latest
+    needs: build-elixir_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'elixir_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark elixir_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh elixir_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:elixir_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-erlang_grpcbox:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'erlang_grpcbox_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build erlang_grpcbox_bench
+      run: ./build.sh erlang_grpcbox_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-erlang_grpcbox:
+    runs-on: ubuntu-latest
+    needs: build-erlang_grpcbox
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'erlang_grpcbox_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark erlang_grpcbox_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh erlang_grpcbox_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:erlang_grpcbox_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-go_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'go_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:go_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:go_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:go_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:go_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build go_grpc_bench
+      run: ./build.sh go_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:go_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-go_grpc:
+    runs-on: ubuntu-latest
+    needs: build-go_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'go_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:go_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark go_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh go_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:go_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:go_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:go_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-go_vtgrpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'go_vtgrpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build go_vtgrpc_bench
+      run: ./build.sh go_vtgrpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-go_vtgrpc:
+    runs-on: ubuntu-latest
+    needs: build-go_vtgrpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'go_vtgrpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark go_vtgrpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh go_vtgrpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:go_vtgrpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_aot:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_aot_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_aot_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_aot_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_aot_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_aot_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_aot_bench
+      run: ./build.sh java_aot_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_aot_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_aot:
+    runs-on: ubuntu-latest
+    needs: build-java_aot
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_aot_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_aot_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_aot_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_aot_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_aot_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_aot_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_aot_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_hotspot_grpc_g1gc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_g1gc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_hotspot_grpc_g1gc_bench
+      run: ./build.sh java_hotspot_grpc_g1gc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_hotspot_grpc_g1gc:
+    runs-on: ubuntu-latest
+    needs: build-java_hotspot_grpc_g1gc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_g1gc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_hotspot_grpc_g1gc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_hotspot_grpc_g1gc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_hotspot_grpc_g1gc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_hotspot_grpc_pgc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_pgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_hotspot_grpc_pgc_bench
+      run: ./build.sh java_hotspot_grpc_pgc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_hotspot_grpc_pgc:
+    runs-on: ubuntu-latest
+    needs: build-java_hotspot_grpc_pgc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_pgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_hotspot_grpc_pgc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_hotspot_grpc_pgc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_hotspot_grpc_pgc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_hotspot_grpc_sgc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_sgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_hotspot_grpc_sgc_bench
+      run: ./build.sh java_hotspot_grpc_sgc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_hotspot_grpc_sgc:
+    runs-on: ubuntu-latest
+    needs: build-java_hotspot_grpc_sgc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_sgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_hotspot_grpc_sgc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_hotspot_grpc_sgc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_hotspot_grpc_sgc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_hotspot_grpc_she:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_she_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_hotspot_grpc_she_bench
+      run: ./build.sh java_hotspot_grpc_she_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_hotspot_grpc_she:
+    runs-on: ubuntu-latest
+    needs: build-java_hotspot_grpc_she
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_she_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_hotspot_grpc_she_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_hotspot_grpc_she_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_hotspot_grpc_she_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_hotspot_grpc_zgc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_zgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_hotspot_grpc_zgc_bench
+      run: ./build.sh java_hotspot_grpc_zgc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_hotspot_grpc_zgc:
+    runs-on: ubuntu-latest
+    needs: build-java_hotspot_grpc_zgc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_hotspot_grpc_zgc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_hotspot_grpc_zgc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_hotspot_grpc_zgc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_hotspot_grpc_zgc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_micronaut:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_micronaut_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_micronaut_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_micronaut_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_micronaut_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_micronaut_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_micronaut_bench
+      run: ./build.sh java_micronaut_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_micronaut_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_micronaut:
+    runs-on: ubuntu-latest
+    needs: build-java_micronaut
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_micronaut_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_micronaut_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_micronaut_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_micronaut_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_micronaut_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_micronaut_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_micronaut_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_micronaut_workstealing:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_micronaut_workstealing_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_micronaut_workstealing_bench
+      run: ./build.sh java_micronaut_workstealing_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_micronaut_workstealing:
+    runs-on: ubuntu-latest
+    needs: build-java_micronaut_workstealing
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_micronaut_workstealing_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_micronaut_workstealing_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_micronaut_workstealing_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_micronaut_workstealing_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_openj9_grpc_gencon:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_openj9_grpc_gencon_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_openj9_grpc_gencon_bench
+      run: ./build.sh java_openj9_grpc_gencon_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_openj9_grpc_gencon:
+    runs-on: ubuntu-latest
+    needs: build-java_openj9_grpc_gencon
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_openj9_grpc_gencon_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_openj9_grpc_gencon_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_openj9_grpc_gencon_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_openj9_grpc_gencon_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_quarkus:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_quarkus_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_quarkus_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_quarkus_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_quarkus_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_quarkus_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_quarkus_bench
+      run: ./build.sh java_quarkus_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_quarkus_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_quarkus:
+    runs-on: ubuntu-latest
+    needs: build-java_quarkus
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_quarkus_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_quarkus_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_quarkus_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_quarkus_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_quarkus_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_quarkus_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_quarkus_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-java_quarkus_native:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_quarkus_native_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build java_quarkus_native_bench
+      run: ./build.sh java_quarkus_native_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-java_quarkus_native:
+    runs-on: ubuntu-latest
+    needs: build-java_quarkus_native
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'java_quarkus_native_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark java_quarkus_native_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh java_quarkus_native_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:java_quarkus_native_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-kotlin_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'kotlin_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build kotlin_grpc_bench
+      run: ./build.sh kotlin_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-kotlin_grpc:
+    runs-on: ubuntu-latest
+    needs: build-kotlin_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'kotlin_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark kotlin_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh kotlin_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:kotlin_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-node_grpcjs_st:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'node_grpcjs_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build node_grpcjs_st_bench
+      run: ./build.sh node_grpcjs_st_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-node_grpcjs_st:
+    runs-on: ubuntu-latest
+    needs: build-node_grpcjs_st
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'node_grpcjs_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark node_grpcjs_st_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh node_grpcjs_st_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:node_grpcjs_st_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-php_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'php_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:php_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:php_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:php_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:php_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build php_grpc_bench
+      run: ./build.sh php_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:php_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-php_grpc:
+    runs-on: ubuntu-latest
+    needs: build-php_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'php_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:php_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark php_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh php_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:php_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:php_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:php_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-python_async_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'python_async_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build python_async_grpc_bench
+      run: ./build.sh python_async_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-python_async_grpc:
+    runs-on: ubuntu-latest
+    needs: build-python_async_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'python_async_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark python_async_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh python_async_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:python_async_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-python_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'python_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:python_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:python_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:python_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:python_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build python_grpc_bench
+      run: ./build.sh python_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:python_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-python_grpc:
+    runs-on: ubuntu-latest
+    needs: build-python_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'python_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:python_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark python_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh python_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:python_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:python_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:python_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-ruby_grpc:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'ruby_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build ruby_grpc_bench
+      run: ./build.sh ruby_grpc_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-ruby_grpc:
+    runs-on: ubuntu-latest
+    needs: build-ruby_grpc
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'ruby_grpc_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark ruby_grpc_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh ruby_grpc_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:ruby_grpc_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-rust_grpcio:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_grpcio_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build rust_grpcio_bench
+      run: ./build.sh rust_grpcio_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-rust_grpcio:
+    runs-on: ubuntu-latest
+    needs: build-rust_grpcio
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_grpcio_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark rust_grpcio_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh rust_grpcio_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:rust_grpcio_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-rust_thruster_mt:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_thruster_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build rust_thruster_mt_bench
+      run: ./build.sh rust_thruster_mt_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-rust_thruster_mt:
+    runs-on: ubuntu-latest
+    needs: build-rust_thruster_mt
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_thruster_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark rust_thruster_mt_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh rust_thruster_mt_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:rust_thruster_mt_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-rust_thruster_st:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_thruster_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build rust_thruster_st_bench
+      run: ./build.sh rust_thruster_st_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-rust_thruster_st:
+    runs-on: ubuntu-latest
+    needs: build-rust_thruster_st
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_thruster_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark rust_thruster_st_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh rust_thruster_st_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:rust_thruster_st_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-rust_tonic_mt:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_tonic_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build rust_tonic_mt_bench
+      run: ./build.sh rust_tonic_mt_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-rust_tonic_mt:
+    runs-on: ubuntu-latest
+    needs: build-rust_tonic_mt
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_tonic_mt_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark rust_tonic_mt_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh rust_tonic_mt_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:rust_tonic_mt_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-rust_tonic_st:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_tonic_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build rust_tonic_st_bench
+      run: ./build.sh rust_tonic_st_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-rust_tonic_st:
+    runs-on: ubuntu-latest
+    needs: build-rust_tonic_st
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'rust_tonic_st_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark rust_tonic_st_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh rust_tonic_st_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:rust_tonic_st_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-scala_akka:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_akka_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:scala_akka_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:scala_akka_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:scala_akka_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:scala_akka_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build scala_akka_bench
+      run: ./build.sh scala_akka_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:scala_akka_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-scala_akka:
+    runs-on: ubuntu-latest
+    needs: build-scala_akka
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_akka_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:scala_akka_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark scala_akka_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh scala_akka_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:scala_akka_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:scala_akka_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:scala_akka_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-scala_fs2:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_fs2_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:scala_fs2_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:scala_fs2_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:scala_fs2_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:scala_fs2_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build scala_fs2_bench
+      run: ./build.sh scala_fs2_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:scala_fs2_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-scala_fs2:
+    runs-on: ubuntu-latest
+    needs: build-scala_fs2
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_fs2_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:scala_fs2_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark scala_fs2_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh scala_fs2_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:scala_fs2_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:scala_fs2_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:scala_fs2_bench-$GRPC_REQUEST_SCENARIO
+
+
+  build-scala_zio:
+    runs-on: ubuntu-latest
+    needs: meta-check
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_zio_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Pull image to feed cache
+      run: |
+        docker pull ghcr.io/${{ github.repository }}:scala_zio_bench-$GRPC_REQUEST_SCENARIO || true
+        docker tag  ghcr.io/${{ github.repository }}:scala_zio_bench-$GRPC_REQUEST_SCENARIO $GRPC_IMAGE_NAME:scala_zio_bench-$GRPC_REQUEST_SCENARIO || true
+        docker push                 $GRPC_IMAGE_NAME:scala_zio_bench-$GRPC_REQUEST_SCENARIO || true
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Build scala_zio_bench
+      run: ./build.sh scala_zio_bench
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Ensure local registry has most recent image
+      run: |
+        docker push $GRPC_IMAGE_NAME:scala_zio_bench-$GRPC_REQUEST_SCENARIO
+        du -sh /tmp/docker-registry
+
+
+  bench-scala_zio:
+    runs-on: ubuntu-latest
+    needs: build-scala_zio
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup local registry cache
+      id: cache
+      uses: actions/cache@v1
+      with:
+        path: /tmp/docker-registry
+        key: docker-registry-${{ hashFiles('proto/', 'scala_zio_bench/') }}
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Fail job on cache miss
+      run: 'false'
+
+    - name: Setup local Docker registry
+      run: |
+        docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+        while ! nc -z localhost 5000; do sleep .1; done
+
+    - name: Pull image from local registry
+      run: docker pull $GRPC_IMAGE_NAME:scala_zio_bench-$GRPC_REQUEST_SCENARIO
+      timeout-minutes: 2
+
+    - name: Benchmark scala_zio_bench
+      run: GRPC_BENCHMARK_DURATION=30s ./bench.sh scala_zio_bench
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: ${{ github.ref == 'refs/heads/master' }}
+      name: If on master push image to GHCR
+      run: |
+        docker tag                  $GRPC_IMAGE_NAME:scala_zio_bench-$GRPC_REQUEST_SCENARIO ghcr.io/${{ github.repository }}:scala_zio_bench-$GRPC_REQUEST_SCENARIO
+        docker push ghcr.io/${{ github.repository }}:scala_zio_bench-$GRPC_REQUEST_SCENARIO
+
+

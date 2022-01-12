@@ -1,23 +1,27 @@
 #!/bin/sh
 
+export GRPC_IMAGE_NAME="${GRPC_IMAGE_NAME:-grpc_bench}"
+
+
 ## The list of benchmarks to clean
 BENCHMARKS_TO_CLEAN="${@}"
 
-## Clean the ghz if there are no arguments
-IMAGES_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-infoblox/ghz:0.0.1}"
+IMAGES_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-}"
 
 ##  ...or use all the *_bench dirs by default
 BENCHMARKS_TO_CLEAN="${BENCHMARKS_TO_CLEAN:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
 for benchmark in ${BENCHMARKS_TO_CLEAN}; do
-	IMAGES_TO_CLEAN="${IMAGES_TO_CLEAN} ${benchmark##*/}"
+	benchmark=${benchmark##*/}
+
+    for scenario in $(find scenarios/ -maxdepth 1 -type d | tail -n+2 | sort); do
+		scenario=${scenario##scenarios/}
+		IMAGES_TO_CLEAN="${IMAGES_TO_CLEAN} ${GRPC_IMAGE_NAME}:${benchmark}-${scenario}"
+	done
+
 	IMAGES_TO_CLEAN="${IMAGES_TO_CLEAN} $(
-		grep -i '^FROM ' ${benchmark}/Dockerfile | awk '{print $2}'
+		grep -i '^FROM ' "${benchmark}"/Dockerfile | awk '{print $2}'
 	)"
 done
 
-IMAGES_TO_CLEAN="$(echo ${IMAGES_TO_CLEAN} | tr -s ' ' '\n' | sort | uniq)"
-
 docker image remove ${IMAGES_TO_CLEAN}
-
-docker image remove ghz_bench:latest
