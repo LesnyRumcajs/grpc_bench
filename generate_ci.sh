@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
-    - git --no-pager diff --exit-code
+    - run: git --no-pager diff --exit-code
 EOF
 
 while read -r bench; do

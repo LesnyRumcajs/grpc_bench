@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
-    - git --no-pager diff --exit-code
+    - run: git --no-pager diff --exit-code
   build-cpp_asio_grpc_bench-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
