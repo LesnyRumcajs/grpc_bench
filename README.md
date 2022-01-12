@@ -59,6 +59,7 @@ The benchmark can be configured through the following environment variables:
 |GRPC_CLIENT_CONCURRENCY|Number of requests to run concurrently. It can't be smaller than the number of connections.|1000|
 |GRPC_CLIENT_QPS|Rate limit, in queries per second (QPS).|0 (*unlimited*)|
 |GRPC_CLIENT_CPUS|Maximum number of cpus used by the client.|1|
+|GRPC_IMAGE_NAME|Name of Docker image built by `./build.sh`|`'grpc_bench'`|
 
 ### Parameter recommendations
 * `GRPC_BENCHMARK_DURATION` should not be too small. Some implementations need a *warm-up* before achieving their optimal performance and most real-life gRPC services are expected to be long running processes. From what we measured, **300s** should be enough.
