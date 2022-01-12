@@ -105,5 +105,5 @@ EOF
       run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
 EOF
 
-    done < <(find scenarios/ -type d | tail -n+2)
+    done < <(find scenarios/ -type d | tail -n+2 | sort)
 done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
