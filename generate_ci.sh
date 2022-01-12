@@ -116,5 +116,4 @@ EOF
     # TODO: delete all other tags
 
     done < <(find scenarios/ -maxdepth 1 -type d | tail -n+2 | sort)
-# done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
-done < <(printf 'rust_tonic_mt_bench\npython_async_grpc_bench\n' | sort)
+done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
