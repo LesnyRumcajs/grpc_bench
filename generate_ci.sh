@@ -66,7 +66,7 @@ EOF
     done < <(find scenarios/ -type d | tail -n+2)
 
     # Use branch-specific images
-    tobench=$(echo "$tobench" | sed 's% %,%g')
+    tobench=$(echo $tobench | sed 's% %,%g')
 cat <<EOF
   bench-$bench:
     runs-on: ubuntu-latest
