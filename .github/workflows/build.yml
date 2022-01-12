@@ -5,2572 +5,428 @@ on:
   pull_request:
 
 env:
-  GRPC_TAGS_PREFIX: fenollp/
+  GRPC_IMAGE_NAME: ghcr.io/${{ github.repository }}
+  GRPC_BENCHMARK_DURATION: 30s
 
 jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    env:
+      VSN: v0.8.0
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$VSN/shellcheck-$VSN.linux.x86_64.tar.xz" | tar -xJv
+        ./shellcheck-$VSN/shellcheck --version
+    # TODO(fenollp): $(find . -type f -name '*.sh')
+    - run: ./shellcheck-$VSN/shellcheck ./generate_ci.sh
+
   meta-check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
     - run: git --no-pager diff --exit-code
-  build-cpp_asio_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh cpp_asio_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:complex_proto $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-cpp_asio_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_asio_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh cpp_asio_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-cpp_asio_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_asio_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh cpp_asio_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:python_async_grpc_bench
-  build-cpp_asio_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_asio_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh cpp_asio_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_asio_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-cpp_asio_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_asio_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh cpp_asio_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_asio_grpc_bench:rust_tonic_mt_bench
-  build-cpp_grpc_mt_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh cpp_grpc_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:complex_proto $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:complex_proto-$GITHUB_REF_NAME
-  build-cpp_grpc_mt_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_mt_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh cpp_grpc_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-cpp_grpc_mt_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_mt_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh cpp_grpc_mt_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:python_async_grpc_bench
-  build-cpp_grpc_mt_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_mt_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh cpp_grpc_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-cpp_grpc_mt_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_mt_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh cpp_grpc_mt_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_grpc_mt_bench:rust_tonic_mt_bench
-  build-cpp_grpc_st_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh cpp_grpc_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_st_bench:complex_proto $GRPC_TAGS_PREFIXcpp_grpc_st_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_st_bench:complex_proto-$GITHUB_REF_NAME
-  build-cpp_grpc_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh cpp_grpc_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_st_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXcpp_grpc_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-cpp_grpc_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_st_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh cpp_grpc_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:python_async_grpc_bench
-  build-cpp_grpc_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh cpp_grpc_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcpp_grpc_st_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXcpp_grpc_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcpp_grpc_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-cpp_grpc_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-cpp_grpc_st_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh cpp_grpc_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}cpp_grpc_st_bench:rust_tonic_mt_bench
-  build-crystal_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh crystal_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcrystal_grpc_bench:complex_proto $GRPC_TAGS_PREFIXcrystal_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcrystal_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-crystal_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-crystal_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh crystal_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcrystal_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXcrystal_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcrystal_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-crystal_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-crystal_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}crystal_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}crystal_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}crystal_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh crystal_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}crystal_grpc_bench:python_async_grpc_bench
-  build-crystal_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-crystal_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh crystal_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcrystal_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXcrystal_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcrystal_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-crystal_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-crystal_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}crystal_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}crystal_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}crystal_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh crystal_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}crystal_grpc_bench:rust_tonic_mt_bench
-  build-csharp_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh csharp_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcsharp_grpc_bench:complex_proto $GRPC_TAGS_PREFIXcsharp_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcsharp_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-csharp_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-csharp_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh csharp_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcsharp_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXcsharp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcsharp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-csharp_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-csharp_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}csharp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}csharp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}csharp_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh csharp_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}csharp_grpc_bench:python_async_grpc_bench
-  build-csharp_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-csharp_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh csharp_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXcsharp_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXcsharp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXcsharp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-csharp_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-csharp_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}csharp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}csharp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}csharp_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh csharp_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}csharp_grpc_bench:rust_tonic_mt_bench
-  build-dotnet_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh dotnet_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXdotnet_grpc_bench:complex_proto $GRPC_TAGS_PREFIXdotnet_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXdotnet_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-dotnet_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-dotnet_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh dotnet_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXdotnet_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXdotnet_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXdotnet_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-dotnet_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-dotnet_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh dotnet_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:python_async_grpc_bench
-  build-dotnet_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-dotnet_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh dotnet_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXdotnet_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXdotnet_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXdotnet_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-dotnet_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-dotnet_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh dotnet_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}dotnet_grpc_bench:rust_tonic_mt_bench
-  build-elixir_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh elixir_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXelixir_grpc_bench:complex_proto $GRPC_TAGS_PREFIXelixir_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXelixir_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-elixir_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-elixir_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh elixir_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXelixir_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXelixir_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXelixir_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-elixir_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-elixir_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}elixir_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}elixir_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}elixir_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh elixir_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}elixir_grpc_bench:python_async_grpc_bench
-  build-elixir_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-elixir_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh elixir_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXelixir_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXelixir_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXelixir_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-elixir_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-elixir_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}elixir_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}elixir_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}elixir_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh elixir_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}elixir_grpc_bench:rust_tonic_mt_bench
-  build-erlang_grpcbox_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh erlang_grpcbox_bench
-    - run: docker tag $GRPC_TAGS_PREFIXerlang_grpcbox_bench:complex_proto $GRPC_TAGS_PREFIXerlang_grpcbox_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXerlang_grpcbox_bench:complex_proto-$GITHUB_REF_NAME
-  build-erlang_grpcbox_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-erlang_grpcbox_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh erlang_grpcbox_bench
-    - run: docker tag $GRPC_TAGS_PREFIXerlang_grpcbox_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXerlang_grpcbox_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXerlang_grpcbox_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-erlang_grpcbox_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-erlang_grpcbox_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh erlang_grpcbox_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:python_async_grpc_bench
-  build-erlang_grpcbox_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-erlang_grpcbox_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh erlang_grpcbox_bench
-    - run: docker tag $GRPC_TAGS_PREFIXerlang_grpcbox_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXerlang_grpcbox_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXerlang_grpcbox_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-erlang_grpcbox_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-erlang_grpcbox_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh erlang_grpcbox_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}erlang_grpcbox_bench:rust_tonic_mt_bench
-  build-go_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh go_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXgo_grpc_bench:complex_proto $GRPC_TAGS_PREFIXgo_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXgo_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-go_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-go_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh go_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXgo_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXgo_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXgo_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-go_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-go_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}go_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}go_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}go_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh go_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}go_grpc_bench:python_async_grpc_bench
-  build-go_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-go_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh go_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXgo_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXgo_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXgo_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-go_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-go_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}go_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}go_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}go_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh go_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}go_grpc_bench:rust_tonic_mt_bench
-  build-java_aot_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_aot_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_aot_bench:complex_proto $GRPC_TAGS_PREFIXjava_aot_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_aot_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_aot_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_aot_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_aot_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_aot_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_aot_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_aot_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_aot_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_aot_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_aot_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_aot_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_aot_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_aot_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_aot_bench:python_async_grpc_bench
-  build-java_aot_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_aot_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_aot_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_aot_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_aot_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_aot_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_aot_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_aot_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_aot_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_aot_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_aot_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_aot_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_aot_bench:rust_tonic_mt_bench
-  build-java_hotspot_grpc_g1gc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_hotspot_grpc_g1gc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:complex_proto $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_hotspot_grpc_g1gc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_g1gc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_hotspot_grpc_g1gc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_g1gc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_g1gc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_hotspot_grpc_g1gc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:python_async_grpc_bench
-  build-java_hotspot_grpc_g1gc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_g1gc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_hotspot_grpc_g1gc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_g1gc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_g1gc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_hotspot_grpc_g1gc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_g1gc_bench:rust_tonic_mt_bench
-  build-java_hotspot_grpc_pgc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_hotspot_grpc_pgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:complex_proto $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_hotspot_grpc_pgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_pgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_hotspot_grpc_pgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_pgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_pgc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_hotspot_grpc_pgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:python_async_grpc_bench
-  build-java_hotspot_grpc_pgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_pgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_hotspot_grpc_pgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_pgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_pgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_pgc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_hotspot_grpc_pgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_pgc_bench:rust_tonic_mt_bench
-  build-java_hotspot_grpc_sgc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_hotspot_grpc_sgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:complex_proto $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_hotspot_grpc_sgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_sgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_hotspot_grpc_sgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_sgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_sgc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_hotspot_grpc_sgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:python_async_grpc_bench
-  build-java_hotspot_grpc_sgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_sgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_hotspot_grpc_sgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_sgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_sgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_sgc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_hotspot_grpc_sgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_sgc_bench:rust_tonic_mt_bench
-  build-java_hotspot_grpc_she_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_hotspot_grpc_she_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:complex_proto $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_hotspot_grpc_she_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_she_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_hotspot_grpc_she_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_she_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_she_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_hotspot_grpc_she_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:python_async_grpc_bench
-  build-java_hotspot_grpc_she_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_she_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_hotspot_grpc_she_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_she_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_she_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_she_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_hotspot_grpc_she_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_she_bench:rust_tonic_mt_bench
-  build-java_hotspot_grpc_zgc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_hotspot_grpc_zgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:complex_proto $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_hotspot_grpc_zgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_zgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_hotspot_grpc_zgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_zgc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_zgc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_hotspot_grpc_zgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:python_async_grpc_bench
-  build-java_hotspot_grpc_zgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_zgc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_hotspot_grpc_zgc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_hotspot_grpc_zgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_hotspot_grpc_zgc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_hotspot_grpc_zgc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_hotspot_grpc_zgc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_hotspot_grpc_zgc_bench:rust_tonic_mt_bench
-  build-java_micronaut_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_micronaut_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_bench:complex_proto $GRPC_TAGS_PREFIXjava_micronaut_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_micronaut_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_micronaut_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_micronaut_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_micronaut_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_micronaut_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_micronaut_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_micronaut_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_micronaut_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_micronaut_bench:python_async_grpc_bench
-  build-java_micronaut_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_micronaut_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_micronaut_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_micronaut_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_micronaut_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_micronaut_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_micronaut_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_micronaut_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_micronaut_bench:rust_tonic_mt_bench
-  build-java_micronaut_workstealing_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_micronaut_workstealing_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:complex_proto $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_micronaut_workstealing_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_workstealing_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_micronaut_workstealing_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_micronaut_workstealing_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_workstealing_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_micronaut_workstealing_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:python_async_grpc_bench
-  build-java_micronaut_workstealing_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_workstealing_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_micronaut_workstealing_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_micronaut_workstealing_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_micronaut_workstealing_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_micronaut_workstealing_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_micronaut_workstealing_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_micronaut_workstealing_bench:rust_tonic_mt_bench
-  build-java_openj9_grpc_gencon_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_openj9_grpc_gencon_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:complex_proto $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_openj9_grpc_gencon_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_openj9_grpc_gencon_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_openj9_grpc_gencon_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_openj9_grpc_gencon_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_openj9_grpc_gencon_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_openj9_grpc_gencon_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:python_async_grpc_bench
-  build-java_openj9_grpc_gencon_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_openj9_grpc_gencon_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_openj9_grpc_gencon_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_openj9_grpc_gencon_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_openj9_grpc_gencon_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_openj9_grpc_gencon_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_openj9_grpc_gencon_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_openj9_grpc_gencon_bench:rust_tonic_mt_bench
-  build-java_quarkus_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh java_quarkus_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_quarkus_bench:complex_proto $GRPC_TAGS_PREFIXjava_quarkus_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_quarkus_bench:complex_proto-$GITHUB_REF_NAME
-  build-java_quarkus_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_quarkus_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh java_quarkus_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_quarkus_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXjava_quarkus_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_quarkus_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-java_quarkus_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_quarkus_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_quarkus_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_quarkus_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_quarkus_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh java_quarkus_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_quarkus_bench:python_async_grpc_bench
-  build-java_quarkus_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_quarkus_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh java_quarkus_bench
-    - run: docker tag $GRPC_TAGS_PREFIXjava_quarkus_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXjava_quarkus_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXjava_quarkus_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-java_quarkus_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-java_quarkus_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}java_quarkus_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}java_quarkus_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}java_quarkus_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh java_quarkus_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}java_quarkus_bench:rust_tonic_mt_bench
-  build-kotlin_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh kotlin_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXkotlin_grpc_bench:complex_proto $GRPC_TAGS_PREFIXkotlin_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXkotlin_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-kotlin_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-kotlin_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh kotlin_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXkotlin_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXkotlin_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXkotlin_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-kotlin_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-kotlin_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh kotlin_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:python_async_grpc_bench
-  build-kotlin_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-kotlin_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh kotlin_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXkotlin_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXkotlin_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXkotlin_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-kotlin_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-kotlin_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh kotlin_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}kotlin_grpc_bench:rust_tonic_mt_bench
-  build-node_grpcjs_st_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh node_grpcjs_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:complex_proto $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:complex_proto-$GITHUB_REF_NAME
-  build-node_grpcjs_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-node_grpcjs_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh node_grpcjs_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-node_grpcjs_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-node_grpcjs_st_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh node_grpcjs_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:python_async_grpc_bench
-  build-node_grpcjs_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-node_grpcjs_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh node_grpcjs_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXnode_grpcjs_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-node_grpcjs_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-node_grpcjs_st_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh node_grpcjs_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}node_grpcjs_st_bench:rust_tonic_mt_bench
-  build-php_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh php_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXphp_grpc_bench:complex_proto $GRPC_TAGS_PREFIXphp_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXphp_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-php_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-php_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh php_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXphp_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXphp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXphp_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-php_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-php_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}php_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}php_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}php_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh php_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}php_grpc_bench:python_async_grpc_bench
-  build-php_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-php_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh php_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXphp_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXphp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXphp_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-php_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-php_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}php_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}php_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}php_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh php_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}php_grpc_bench:rust_tonic_mt_bench
+
   build-python_async_grpc_bench-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
     - run: ./build.sh python_async_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_async_grpc_bench:complex_proto $GRPC_TAGS_PREFIXpython_async_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_async_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-python_async_grpc_bench-python_async_grpc_bench:
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME
+
+  build-python_async_grpc_bench-string_100B:
     runs-on: ubuntu-latest
     needs: build-python_async_grpc_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh python_async_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_async_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXpython_async_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_async_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-python_async_grpc_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_100B ./build.sh python_async_grpc_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME
+
+  bench-python_async_grpc_bench-string_100B:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-python_async_grpc_bench
+    needs: build-python_async_grpc_bench-string_100B
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}python_async_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}python_async_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}python_async_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh python_async_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}python_async_grpc_bench:python_async_grpc_bench
-  build-python_async_grpc_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B
+    - run: GRPC_REQUEST_SCENARIO=string_100B ./bench.sh python_async_grpc_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B
+
+  build-python_async_grpc_bench-string_10B:
     runs-on: ubuntu-latest
     needs: build-python_async_grpc_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh python_async_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_async_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXpython_async_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_async_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-python_async_grpc_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_10B ./build.sh python_async_grpc_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME
+
+  bench-python_async_grpc_bench-string_10B:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-rust_tonic_mt_bench
+    needs: build-python_async_grpc_bench-string_10B
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}python_async_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}python_async_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}python_async_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh python_async_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}python_async_grpc_bench:rust_tonic_mt_bench
-  build-python_grpc_bench-complex_proto:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B
+    - run: GRPC_REQUEST_SCENARIO=string_10B ./bench.sh python_async_grpc_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B
+
+  build-python_async_grpc_bench-string_10kB:
     runs-on: ubuntu-latest
-    needs: meta-check
+    needs: build-python_async_grpc_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh python_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_grpc_bench:complex_proto $GRPC_TAGS_PREFIXpython_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-python_grpc_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_10kB ./build.sh python_async_grpc_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
+
+  bench-python_async_grpc_bench-string_10kB:
     runs-on: ubuntu-latest
-    needs: build-python_grpc_bench-complex_proto
+    needs: build-python_async_grpc_bench-string_10kB
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh python_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXpython_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-python_grpc_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB
+    - run: GRPC_REQUEST_SCENARIO=string_10kB ./bench.sh python_async_grpc_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB
+
+  build-python_async_grpc_bench-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-python_grpc_bench-python_async_grpc_bench
+    needs: build-python_async_grpc_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}python_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}python_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}python_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh python_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}python_grpc_bench:python_async_grpc_bench
-  build-python_grpc_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_1kB ./build.sh python_async_grpc_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
+
+  bench-python_async_grpc_bench-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-python_grpc_bench-complex_proto
+    needs: build-python_async_grpc_bench-string_1kB
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh python_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXpython_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXpython_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXpython_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-python_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-python_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}python_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}python_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}python_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh python_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}python_grpc_bench:rust_tonic_mt_bench
-  build-ruby_grpc_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh ruby_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXruby_grpc_bench:complex_proto $GRPC_TAGS_PREFIXruby_grpc_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXruby_grpc_bench:complex_proto-$GITHUB_REF_NAME
-  build-ruby_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-ruby_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh ruby_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXruby_grpc_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXruby_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXruby_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-ruby_grpc_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-ruby_grpc_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}ruby_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}ruby_grpc_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}ruby_grpc_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh ruby_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}ruby_grpc_bench:python_async_grpc_bench
-  build-ruby_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-ruby_grpc_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh ruby_grpc_bench
-    - run: docker tag $GRPC_TAGS_PREFIXruby_grpc_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXruby_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXruby_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-ruby_grpc_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-ruby_grpc_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}ruby_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}ruby_grpc_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}ruby_grpc_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh ruby_grpc_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}ruby_grpc_bench:rust_tonic_mt_bench
-  build-rust_grpcio_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh rust_grpcio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_grpcio_bench:complex_proto $GRPC_TAGS_PREFIXrust_grpcio_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_grpcio_bench:complex_proto-$GITHUB_REF_NAME
-  build-rust_grpcio_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_grpcio_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh rust_grpcio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_grpcio_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXrust_grpcio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_grpcio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-rust_grpcio_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_grpcio_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_grpcio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_grpcio_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_grpcio_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh rust_grpcio_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_grpcio_bench:python_async_grpc_bench
-  build-rust_grpcio_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_grpcio_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh rust_grpcio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_grpcio_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXrust_grpcio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_grpcio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-rust_grpcio_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_grpcio_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_grpcio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_grpcio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_grpcio_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh rust_grpcio_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_grpcio_bench:rust_tonic_mt_bench
-  build-rust_thruster_mt_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh rust_thruster_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_mt_bench:complex_proto $GRPC_TAGS_PREFIXrust_thruster_mt_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_mt_bench:complex_proto-$GITHUB_REF_NAME
-  build-rust_thruster_mt_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_mt_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh rust_thruster_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_mt_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXrust_thruster_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-rust_thruster_mt_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_mt_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh rust_thruster_mt_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:python_async_grpc_bench
-  build-rust_thruster_mt_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_mt_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh rust_thruster_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_mt_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXrust_thruster_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-rust_thruster_mt_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_mt_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh rust_thruster_mt_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_thruster_mt_bench:rust_tonic_mt_bench
-  build-rust_thruster_st_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh rust_thruster_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_st_bench:complex_proto $GRPC_TAGS_PREFIXrust_thruster_st_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_st_bench:complex_proto-$GITHUB_REF_NAME
-  build-rust_thruster_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh rust_thruster_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_st_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXrust_thruster_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-rust_thruster_st_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_st_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh rust_thruster_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:python_async_grpc_bench
-  build-rust_thruster_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_st_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh rust_thruster_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_thruster_st_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXrust_thruster_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_thruster_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-rust_thruster_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_thruster_st_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh rust_thruster_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_thruster_st_bench:rust_tonic_mt_bench
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB
+    - run: GRPC_REQUEST_SCENARIO=string_1kB ./bench.sh python_async_grpc_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB
+
   build-rust_tonic_mt_bench-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
     - run: ./build.sh rust_tonic_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_mt_bench:complex_proto $GRPC_TAGS_PREFIXrust_tonic_mt_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_mt_bench:complex_proto-$GITHUB_REF_NAME
-  build-rust_tonic_mt_bench-python_async_grpc_bench:
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME
+
+  build-rust_tonic_mt_bench-string_100B:
     runs-on: ubuntu-latest
     needs: build-rust_tonic_mt_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh rust_tonic_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_mt_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXrust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-rust_tonic_mt_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_100B ./build.sh rust_tonic_mt_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
+
+  bench-rust_tonic_mt_bench-string_100B:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-python_async_grpc_bench
-    # If on master push naked image as well
-    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: build-rust_tonic_mt_bench-string_100B
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: docker pull ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker tag  ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: docker push ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-  build-rust_tonic_mt_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B
+    - run: GRPC_REQUEST_SCENARIO=string_100B ./bench.sh rust_tonic_mt_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B
+
+  build-rust_tonic_mt_bench-string_10B:
     runs-on: ubuntu-latest
     needs: build-rust_tonic_mt_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh rust_tonic_mt_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_mt_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXrust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-rust_tonic_mt_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_10B ./build.sh rust_tonic_mt_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
+
+  bench-rust_tonic_mt_bench-string_10B:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-rust_tonic_mt_bench
-    # If on master push naked image as well
-    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: build-rust_tonic_mt_bench-string_10B
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: docker pull ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker tag  ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: docker push ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-  build-rust_tonic_st_bench-complex_proto:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B
+    - run: GRPC_REQUEST_SCENARIO=string_10B ./bench.sh rust_tonic_mt_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B
+
+  build-rust_tonic_mt_bench-string_10kB:
     runs-on: ubuntu-latest
-    needs: meta-check
+    needs: build-rust_tonic_mt_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh rust_tonic_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_st_bench:complex_proto $GRPC_TAGS_PREFIXrust_tonic_st_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_st_bench:complex_proto-$GITHUB_REF_NAME
-  build-rust_tonic_st_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_10kB ./build.sh rust_tonic_mt_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
+
+  bench-rust_tonic_mt_bench-string_10kB:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_st_bench-complex_proto
+    needs: build-rust_tonic_mt_bench-string_10kB
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh rust_tonic_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_st_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXrust_tonic_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-rust_tonic_st_bench-python_async_grpc_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB
+    - run: GRPC_REQUEST_SCENARIO=string_10kB ./bench.sh rust_tonic_mt_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB
+
+  build-rust_tonic_mt_bench-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_st_bench-python_async_grpc_bench
+    needs: build-rust_tonic_mt_bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh rust_tonic_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:python_async_grpc_bench
-  build-rust_tonic_st_bench-rust_tonic_mt_bench:
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: GRPC_REQUEST_SCENARIO=string_1kB ./build.sh rust_tonic_mt_bench
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
+
+  bench-rust_tonic_mt_bench-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_st_bench-complex_proto
+    needs: build-rust_tonic_mt_bench-string_1kB
     steps:
-    - uses: docker/login-action@v1
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh rust_tonic_st_bench
-    - run: docker tag $GRPC_TAGS_PREFIXrust_tonic_st_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXrust_tonic_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXrust_tonic_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-rust_tonic_st_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-rust_tonic_st_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh rust_tonic_st_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}rust_tonic_st_bench:rust_tonic_mt_bench
-  build-scala_akka_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh scala_akka_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_akka_bench:complex_proto $GRPC_TAGS_PREFIXscala_akka_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_akka_bench:complex_proto-$GITHUB_REF_NAME
-  build-scala_akka_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_akka_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh scala_akka_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_akka_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXscala_akka_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_akka_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-scala_akka_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_akka_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_akka_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_akka_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_akka_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh scala_akka_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_akka_bench:python_async_grpc_bench
-  build-scala_akka_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_akka_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh scala_akka_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_akka_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXscala_akka_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_akka_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-scala_akka_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_akka_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_akka_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_akka_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_akka_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh scala_akka_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_akka_bench:rust_tonic_mt_bench
-  build-scala_fs2_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh scala_fs2_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_fs2_bench:complex_proto $GRPC_TAGS_PREFIXscala_fs2_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_fs2_bench:complex_proto-$GITHUB_REF_NAME
-  build-scala_fs2_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_fs2_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh scala_fs2_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_fs2_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXscala_fs2_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_fs2_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-scala_fs2_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_fs2_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_fs2_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_fs2_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_fs2_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh scala_fs2_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_fs2_bench:python_async_grpc_bench
-  build-scala_fs2_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_fs2_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh scala_fs2_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_fs2_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXscala_fs2_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_fs2_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-scala_fs2_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_fs2_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_fs2_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_fs2_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_fs2_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh scala_fs2_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_fs2_bench:rust_tonic_mt_bench
-  build-scala_zio_bench-complex_proto:
-    runs-on: ubuntu-latest
-    needs: meta-check
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: ./build.sh scala_zio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_zio_bench:complex_proto $GRPC_TAGS_PREFIXscala_zio_bench:complex_proto-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_zio_bench:complex_proto-$GITHUB_REF_NAME
-  build-scala_zio_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_zio_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./build.sh scala_zio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_zio_bench:python_async_grpc_bench $GRPC_TAGS_PREFIXscala_zio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_zio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-  bench-scala_zio_bench-python_async_grpc_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_zio_bench-python_async_grpc_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_zio_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_zio_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_zio_bench:python_async_grpc_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:python_async_grpc_bench
-    - run: GRPC_REQUEST_SCENARIO=python_async_grpc_bench ./bench.sh scala_zio_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_zio_bench:python_async_grpc_bench
-  build-scala_zio_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_zio_bench-complex_proto
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./build.sh scala_zio_bench
-    - run: docker tag $GRPC_TAGS_PREFIXscala_zio_bench:rust_tonic_mt_bench $GRPC_TAGS_PREFIXscala_zio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-    - run: docker push $GRPC_TAGS_PREFIXscala_zio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-  bench-scala_zio_bench-rust_tonic_mt_bench:
-    runs-on: ubuntu-latest
-    needs: build-scala_zio_bench-rust_tonic_mt_bench
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo ${GRPC_TAGS_PREFIX}scala_zio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-            echo ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag ${GRPC_TAGS_PREFIX}scala_zio_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}scala_zio_bench:rust_tonic_mt_bench
-        docker tag ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench-$GITHUB_REF_NAME ${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:rust_tonic_mt_bench
-    - run: GRPC_REQUEST_SCENARIO=rust_tonic_mt_bench ./bench.sh scala_zio_bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: ${{ github.ref == 'refs/heads/master' }}
-      run: docker push ${GRPC_TAGS_PREFIX}scala_zio_bench:rust_tonic_mt_bench
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB
+    - run: GRPC_REQUEST_SCENARIO=string_1kB ./bench.sh rust_tonic_mt_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB
+

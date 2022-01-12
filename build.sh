@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
-export GRPC_TAGS_PREFIX=${GRPC_TAGS_PREFIX:-}
+export GRPC_IMAGE_NAME=${GRPC_IMAGE_NAME:-'grpc_bench'}
 
 # Build ghz Docker image.
 # See ghz-tool/Dockerfile for details/version
@@ -24,18 +24,18 @@ builds=""
 for benchmark in ${BENCHMARKS_TO_BUILD}; do
 	benchmark=${benchmark##*/}
 
-	cachefrom="$GRPC_TAGS_PREFIX${benchmark}"
+	cachefrom=''
 	while read -r scenario; do
 		scenario=${scenario##scenarios/}
-		echo "$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO"
-		echo "$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO-$branch"
-		cachefrom="$cachefrom,$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO"
-		cachefrom="$cachefrom,$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO-$branch"
+		cachefrom="$cachefrom,$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO"
+		cachefrom="$cachefrom,$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO-$branch"
 	done < <(find scenarios/ -type d | tail -n+2 | sort)
+	cachefrom=${cachefrom/,}
+
 	while read -r scenario; do
 		scenario=${scenario##scenarios/}
-		echo "$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO"
-		echo "$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO-$branch"
+		echo "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO"
+		echo "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO-$branch"
 	done < <(find scenarios/ -type d | tail -n+2 | sort) \
 		| xargs -n1 docker pull --quiet || true
 
@@ -47,7 +47,7 @@ for benchmark in ${BENCHMARKS_TO_BUILD}; do
 			--compress \
 			--cache-from="$cachefrom" \
 			--file "${benchmark}/Dockerfile" \
-			--tag "$$GRPC_TAGS_PREFIX${benchmark}:$GRPC_REQUEST_SCENARIO" \
+			--tag "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO" \
 			. >"${benchmark}.tmp" 2>&1 &&
 			rm -f "${benchmark}.tmp" &&
 			echo "==> Done building ${benchmark}"

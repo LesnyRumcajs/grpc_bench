@@ -16,7 +16,7 @@ export GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
 export GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
-export GRPC_TAGS_PREFIX=${GRPC_TAGS_PREFIX:-}
+export GRPC_IMAGE_NAME=${GRPC_IMAGE_NAME:-'grpc_bench'}
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.
@@ -53,7 +53,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--detach \
 		--tty \
 		--pull always \
-		"$GRPC_TAGS_PREFIX${NAME}:$GRPC_REQUEST_SCENARIO" >/dev/null
+		"$GRPC_IMAGE_NAME:${NAME}-$GRPC_REQUEST_SCENARIO" >/dev/null
 
 	# Wait for server to be ready
 	sleep 5

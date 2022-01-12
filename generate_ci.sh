@@ -2,6 +2,24 @@
 
 set -o pipefail
 
+docker_login_then_checkout() {
+    cat <<EOF
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: \${{ secrets.DOCKERHUB_USERNAME }}
+        password: \${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: \${{ github.actor }}
+        password: \${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+EOF
+}
+
 cat <<EOF
 name: CI
 
@@ -10,15 +28,29 @@ on:
   pull_request:
 
 env:
-  GRPC_TAGS_PREFIX: fenollp/
+  GRPC_IMAGE_NAME: ghcr.io/\${{ github.repository }}
+  GRPC_BENCHMARK_DURATION: 30s
 
 jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    env:
+      VSN: v0.8.0
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        wget -qO- "https://github.com/koalaman/shellcheck/releases/download/\$VSN/shellcheck-\$VSN.linux.x86_64.tar.xz" | tar -xJv
+        ./shellcheck-\$VSN/shellcheck --version
+    # TODO(fenollp): \$(find . -type f -name '*.sh')
+    - run: ./shellcheck-\$VSN/shellcheck ./generate_ci.sh
+
   meta-check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
     - run: git --no-pager diff --exit-code
+
 EOF
 
 while read -r bench; do
@@ -30,17 +62,16 @@ while read -r bench; do
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
-    - uses: docker/login-action@v1
-      with:
-        username: \${{ secrets.DOCKERHUB_USERNAME }}
-        password: \${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
+EOF
+    docker_login_then_checkout
+    cat <<EOF
     - run: ./build.sh $bench
-    - run: docker tag \$GRPC_TAGS_PREFIX$bench:complex_proto \$GRPC_TAGS_PREFIX$bench:complex_proto-\$GITHUB_REF_NAME
-    - run: docker push \$GRPC_TAGS_PREFIX$bench:complex_proto-\$GITHUB_REF_NAME
+    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-complex_proto \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
+    - run: docker push \$GRPC_IMAGE_NAME:$bench-complex_proto-\$GITHUB_REF_NAME
+
 EOF
 
-    # Build & push branch-specific images for all other scenarii
+    # Build & push branch-specific images for all other scenarios
     while read -r scenario; do
         scenario=${scenario##scenarios/}
         if [[ "$scenario" = complex_proto ]]; then
@@ -51,60 +82,33 @@ EOF
     runs-on: ubuntu-latest
     needs: build-$bench-complex_proto
     steps:
-    - uses: docker/login-action@v1
-      with:
-        username: \${{ secrets.DOCKERHUB_USERNAME }}
-        password: \${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
+EOF
+        docker_login_then_checkout
+        cat <<EOF
     - run: GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench
-    - run: docker tag \$GRPC_TAGS_PREFIX$bench:$scenario \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME
-    - run: docker push \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME
+    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME$bench-$scenario-\$GITHUB_REF_NAME
+    - run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+
 EOF
 
         # Use branch-specific images
-        if [[ "$bench" = rust_tonic_mt_bench ]]; then
         cat <<EOF
   bench-$bench-$scenario:
     runs-on: ubuntu-latest
     needs: build-$bench-$scenario
-    # If on master push naked image as well
-    if: \${{ github.ref == 'refs/heads/master' }}
     steps:
-    - uses: docker/login-action@v1
-      with:
-        username: \${{ secrets.DOCKERHUB_USERNAME }}
-        password: \${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: docker pull \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME
-    - run: docker tag  \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}$bench:$scenario
-    - run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
 EOF
-            continue
-        fi
+        docker_login_then_checkout
         cat <<EOF
-  bench-$bench-$scenario:
-    runs-on: ubuntu-latest
-    needs: build-$bench-$scenario
-    steps:
-    - uses: docker/login-action@v1
-      with:
-        username: \${{ secrets.DOCKERHUB_USERNAME }}
-        password: \${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: actions/checkout@v2
-    - run: |
-        {
-            echo \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME
-            echo \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario-\$GITHUB_REF_NAME
-        } | xargs -n1 docker pull --quiet
-    - run: |
-        docker tag \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}$bench:$scenario
-        docker tag \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario
-    - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench rust_tonic_mt_bench
-    # If on master push naked image as well
-    - if: \${{ github.ref == 'refs/heads/master' }}
-      run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
+    - run: docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
+    - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
+    - name: If on master push naked image as well
+      if: \${{ github.ref == 'refs/heads/master' }}
+      run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
+
 EOF
 
-    # done < <(find scenarios/ -type d | tail -n+2 | sort)
-    done < <(printf 'rust_tonic_mt_bench\npython_async_grpc_bench\n' | sort)
-done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
+    done < <(find scenarios/ -type d | tail -n+2 | sort)
+# done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
+done < <(printf 'rust_tonic_mt_bench\npython_async_grpc_bench\n' | sort)
