@@ -16,6 +16,7 @@ export GRPC_CLIENT_QPS=${GRPC_CLIENT_QPS:-"0"}
 export GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
+export GRPC_TAGS_PREFIX=${GRPC_TAGS_PREFIX:-}
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.
@@ -41,12 +42,18 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	fi
 
 	# Start the gRPC Server container
-	docker run --name "${NAME}" --rm \
+	docker run \
+		--name "${NAME}" \
+		--rm \
 		--cpus "${GRPC_SERVER_CPUS}" \
 		--memory "${GRPC_SERVER_RAM}" \
 		-e GRPC_SERVER_CPUS \
 		-e GRPC_SERVER_RAM \
-		--network=host --detach --tty "${NAME}" >/dev/null
+		--network=host \
+		--detach \
+		--tty \
+		--pull always \
+		"$GRPC_TAGS_PREFIX${NAME}:$GRPC_REQUEST_SCENARIO" >/dev/null
 
 	# Wait for server to be ready
 	sleep 5
