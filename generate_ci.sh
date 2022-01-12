@@ -106,4 +106,4 @@ EOF
 EOF
 
     done < <(find scenarios/ -type d | tail -n+2)
-done < <(find . -type d -name '*_bench' | sort)
+done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
