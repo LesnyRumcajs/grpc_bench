@@ -105,5 +105,6 @@ EOF
       run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
 EOF
 
-    done < <(find scenarios/ -type d | tail -n+2 | sort)
+    # done < <(find scenarios/ -type d | tail -n+2 | sort)
+    done < <(printf 'rust_tonic_mt_bench\npython_async_grpc_bench\n' | sort)
 done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
