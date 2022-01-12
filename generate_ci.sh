@@ -41,7 +41,7 @@ jobs:
     - run: |
         wget -qO- "https://github.com/koalaman/shellcheck/releases/download/\$VSN/shellcheck-\$VSN.linux.x86_64.tar.xz" | tar -xJv
         ./shellcheck-\$VSN/shellcheck --version
-    # TODO(fenollp): \$(find . -type f -name '*.sh')
+    # TODO: \$(find . -type f -name '*.sh')
     - run: ./shellcheck-\$VSN/shellcheck ./generate_ci.sh
 
   meta-check:
@@ -57,8 +57,9 @@ while read -r bench; do
     bench=${bench##./}
 
     # Build & push branch-specific image for complex_proto
+
     cat <<EOF
-  build-$bench-complex_proto:
+  ${bench//_bench}-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
@@ -71,36 +72,51 @@ EOF
 
 EOF
 
-    # Build & push branch-specific images for all other scenarios
     while read -r scenario; do
         scenario=${scenario##scenarios/}
+
+        # Benchmark -complex_proto- images
+
         if [[ "$scenario" = complex_proto ]]; then
+            cat <<EOF
+  bench-${bench//_bench}-$scenario:
+    runs-on: ubuntu-latest
+    needs: ${bench//_bench}-$scenario
+    steps:
+EOF
+            docker_login_then_checkout
+            cat <<EOF
+    - run: docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
+    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
+    - run: ./bench.sh $bench
+    - name: If on master push naked image as well
+      if: \${{ github.ref == 'refs/heads/master' }}
+      run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
+
+EOF
+            # May also push $GRPC_IMAGE_NAME:$bench for convenience?
+        # - name: If on master push naked image as well
+        #   if: \${{ github.ref == 'refs/heads/master' }}
+        #   run: |
+        #     docker tag \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME:$bench
+        #     docker push \$GRPC_IMAGE_NAME:$bench-$scenario
             continue
         fi
+
+
+        # Build & benchmark all other scenarios
+
         cat <<EOF
-  build-$bench-$scenario:
+  ${bench//_bench}-$scenario:
     runs-on: ubuntu-latest
-    needs: build-$bench-complex_proto
+    needs: ${bench//_bench}-complex_proto
     steps:
 EOF
         docker_login_then_checkout
         cat <<EOF
     - run: GRPC_REQUEST_SCENARIO=$scenario ./build.sh $bench
-    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME$bench-$scenario-\$GITHUB_REF_NAME
+    - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
     - run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
-
-EOF
-
-        # Use branch-specific images
-        cat <<EOF
-  bench-$bench-$scenario:
-    runs-on: ubuntu-latest
-    needs: build-$bench-$scenario
-    steps:
-EOF
-        docker_login_then_checkout
-        cat <<EOF
-    - run: docker pull \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME
     - run: docker tag  \$GRPC_IMAGE_NAME:$bench-$scenario-\$GITHUB_REF_NAME \$GRPC_IMAGE_NAME:$bench-$scenario
     - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
     - name: If on master push naked image as well
@@ -108,6 +124,8 @@ EOF
       run: docker push \$GRPC_IMAGE_NAME:$bench-$scenario
 
 EOF
+
+    # TODO: delete all other tags
 
     done < <(find scenarios/ -type d | tail -n+2 | sort)
 # done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)

@@ -18,7 +18,7 @@ jobs:
     - run: |
         wget -qO- "https://github.com/koalaman/shellcheck/releases/download/$VSN/shellcheck-$VSN.linux.x86_64.tar.xz" | tar -xJv
         ./shellcheck-$VSN/shellcheck --version
-    # TODO(fenollp): $(find . -type f -name '*.sh')
+    # TODO: $(find . -type f -name '*.sh')
     - run: ./shellcheck-$VSN/shellcheck ./generate_ci.sh
 
   meta-check:
@@ -28,7 +28,7 @@ jobs:
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
     - run: git --no-pager diff --exit-code
 
-  build-python_async_grpc_bench-complex_proto:
+  python_async_grpc-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
@@ -49,9 +49,33 @@ jobs:
     - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME
 
-  build-python_async_grpc_bench-string_100B:
+  bench-python_async_grpc-complex_proto:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-complex_proto
+    needs: python_async_grpc-complex_proto
+    steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto
+    - run: ./bench.sh python_async_grpc_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-complex_proto
+
+  python_async_grpc-string_100B:
+    runs-on: ubuntu-latest
+    needs: python_async_grpc-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -67,36 +91,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_100B ./build.sh python_async_grpc_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME
-
-  bench-python_async_grpc_bench-string_100B:
-    runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-string_100B
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B
     - run: GRPC_REQUEST_SCENARIO=string_100B ./bench.sh python_async_grpc_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_100B
 
-  build-python_async_grpc_bench-string_10B:
+  python_async_grpc-string_10B:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-complex_proto
+    needs: python_async_grpc-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -112,36 +117,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_10B ./build.sh python_async_grpc_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME
-
-  bench-python_async_grpc_bench-string_10B:
-    runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-string_10B
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B
     - run: GRPC_REQUEST_SCENARIO=string_10B ./bench.sh python_async_grpc_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10B
 
-  build-python_async_grpc_bench-string_10kB:
+  python_async_grpc-string_10kB:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-complex_proto
+    needs: python_async_grpc-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -157,36 +143,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_10kB ./build.sh python_async_grpc_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
-
-  bench-python_async_grpc_bench-string_10kB:
-    runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-string_10kB
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB
     - run: GRPC_REQUEST_SCENARIO=string_10kB ./bench.sh python_async_grpc_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_10kB
 
-  build-python_async_grpc_bench-string_1kB:
+  python_async_grpc-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-complex_proto
+    needs: python_async_grpc-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -202,34 +169,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_1kB ./build.sh python_async_grpc_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB $GRPC_IMAGE_NAMEpython_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
-
-  bench-python_async_grpc_bench-string_1kB:
-    runs-on: ubuntu-latest
-    needs: build-python_async_grpc_bench-string_1kB
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB
     - run: GRPC_REQUEST_SCENARIO=string_1kB ./bench.sh python_async_grpc_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:python_async_grpc_bench-string_1kB
 
-  build-rust_tonic_mt_bench-complex_proto:
+  rust_tonic_mt-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
     steps:
@@ -250,9 +198,33 @@ jobs:
     - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME
 
-  build-rust_tonic_mt_bench-string_100B:
+  bench-rust_tonic_mt-complex_proto:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-complex_proto
+    needs: rust_tonic_mt-complex_proto
+    steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto
+    - run: ./bench.sh rust_tonic_mt_bench
+    - name: If on master push naked image as well
+      if: ${{ github.ref == 'refs/heads/master' }}
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-complex_proto
+
+  rust_tonic_mt-string_100B:
+    runs-on: ubuntu-latest
+    needs: rust_tonic_mt-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -268,36 +240,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_100B ./build.sh rust_tonic_mt_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
-
-  bench-rust_tonic_mt_bench-string_100B:
-    runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-string_100B
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B
     - run: GRPC_REQUEST_SCENARIO=string_100B ./bench.sh rust_tonic_mt_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_100B
 
-  build-rust_tonic_mt_bench-string_10B:
+  rust_tonic_mt-string_10B:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-complex_proto
+    needs: rust_tonic_mt-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -313,36 +266,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_10B ./build.sh rust_tonic_mt_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
-
-  bench-rust_tonic_mt_bench-string_10B:
-    runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-string_10B
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B
     - run: GRPC_REQUEST_SCENARIO=string_10B ./bench.sh rust_tonic_mt_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10B
 
-  build-rust_tonic_mt_bench-string_10kB:
+  rust_tonic_mt-string_10kB:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-complex_proto
+    needs: rust_tonic_mt-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -358,36 +292,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_10kB ./build.sh rust_tonic_mt_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
-
-  bench-rust_tonic_mt_bench-string_10kB:
-    runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-string_10kB
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB
     - run: GRPC_REQUEST_SCENARIO=string_10kB ./bench.sh rust_tonic_mt_bench
     - name: If on master push naked image as well
       if: ${{ github.ref == 'refs/heads/master' }}
       run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_10kB
 
-  build-rust_tonic_mt_bench-string_1kB:
+  rust_tonic_mt-string_1kB:
     runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-complex_proto
+    needs: rust_tonic_mt-complex_proto
     steps:
     - name: Log in to Docker Hub
       uses: docker/login-action@v1
@@ -403,27 +318,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - run: GRPC_REQUEST_SCENARIO=string_1kB ./build.sh rust_tonic_mt_bench
-    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB $GRPC_IMAGE_NAMErust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
+    - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
     - run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
-
-  bench-rust_tonic_mt_bench-string_1kB:
-    runs-on: ubuntu-latest
-    needs: build-rust_tonic_mt_bench-string_1kB
-    steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - run: docker pull $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME
     - run: docker tag  $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB-$GITHUB_REF_NAME $GRPC_IMAGE_NAME:rust_tonic_mt_bench-string_1kB
     - run: GRPC_REQUEST_SCENARIO=string_1kB ./bench.sh rust_tonic_mt_bench
     - name: If on master push naked image as well
