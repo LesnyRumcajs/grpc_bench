@@ -25,7 +25,7 @@ while read -r bench; do
     bench=${bench##./}
 
     # Build & push branch-specific image for complex_proto
-cat <<EOF
+    cat <<EOF
   build-$bench-complex_proto:
     runs-on: ubuntu-latest
     needs: meta-check
@@ -41,16 +41,13 @@ cat <<EOF
 EOF
 
     # Build & push branch-specific images for all other scenarii
-    tobench=''
     while read -r scenario; do
         scenario=${scenario##scenarios/}
-        job_name=build-$bench-$scenario
-        tobench="$tobench $job_name"
         if [[ "$scenario" = complex_proto ]]; then
             continue
         fi
-cat <<EOF
-  $job_name:
+        cat <<EOF
+  build-$bench-$scenario:
     runs-on: ubuntu-latest
     needs: build-$bench-complex_proto
     steps:
@@ -63,25 +60,50 @@ cat <<EOF
     - run: docker tag \$GRPC_TAGS_PREFIX$bench:$scenario \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME
     - run: docker push \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME
 EOF
-    done < <(find scenarios/ -type d | tail -n+2)
 
-    # Use branch-specific images
-    tobench=$(echo $tobench | sed 's% %,%g')
-cat <<EOF
-  bench-$bench:
+        # Use branch-specific images
+        if [[ "$bench" = rust_tonic_mt_bench ]]; then
+        cat <<EOF
+  bench-$bench-$scenario:
     runs-on: ubuntu-latest
-    needs: [$tobench]
+    needs: build-$bench-$scenario
+    # If on master push naked image as well
+    if: \${{ github.ref == 'refs/heads/master' }}
     steps:
     - uses: docker/login-action@v1
       with:
         username: \${{ secrets.DOCKERHUB_USERNAME }}
         password: \${{ secrets.DOCKERHUB_TOKEN }}
     - uses: actions/checkout@v2
-    - run: docker pull \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME
-    - run: docker tag  \$GRPC_TAGS_PREFIX$bench:$scenario-\$GITHUB_REF_NAME \$GRPC_TAGS_PREFIX$bench:$scenario
-    - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench
+    - run: docker pull \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME
+    - run: docker tag  \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}$bench:$scenario
+    - run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
+EOF
+            continue
+        fi
+        cat <<EOF
+  bench-$bench-$scenario:
+    runs-on: ubuntu-latest
+    needs: build-$bench-$scenario
+    steps:
+    - uses: docker/login-action@v1
+      with:
+        username: \${{ secrets.DOCKERHUB_USERNAME }}
+        password: \${{ secrets.DOCKERHUB_TOKEN }}
+    - uses: actions/checkout@v2
+    - run: |
+        {
+            echo \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME
+            echo \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario-\$GITHUB_REF_NAME
+        } | xargs -n1 docker pull --quiet
+    - run: |
+        docker tag \${GRPC_TAGS_PREFIX}$bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}$bench:$scenario
+        docker tag \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario-\$GITHUB_REF_NAME \${GRPC_TAGS_PREFIX}rust_tonic_mt_bench:$scenario
+    - run: GRPC_REQUEST_SCENARIO=$scenario ./bench.sh $bench rust_tonic_mt_bench
     # If on master push naked image as well
     - if: \${{ github.ref == 'refs/heads/master' }}
-      run: docker push \$GRPC_TAGS_PREFIX$bench:$scenario
+      run: docker push \${GRPC_TAGS_PREFIX}$bench:$scenario
 EOF
-done < <(find -type d -name '*_bench' | sort)
+
+    done < <(find scenarios/ -type d | tail -n+2)
+done < <(find . -type d -name '*_bench' | sort)
