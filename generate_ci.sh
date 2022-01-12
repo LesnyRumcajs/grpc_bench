@@ -25,7 +25,7 @@ run_or_retry() {
     local command="$1"; shift
     cat <<EOF
     - name: $name
-      uses: Wandalen/wretry.action@v1
+      uses: Wandalen/wretry.action@v1.0.11
       with:
         command: $command
         attempt_limit: 5
