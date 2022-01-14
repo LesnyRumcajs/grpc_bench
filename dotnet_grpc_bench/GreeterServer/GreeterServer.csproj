@@ -1,11 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.37.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.41.0" />
 
     <Protobuf Include="..\..\proto\helloworld\helloworld.proto" Link="helloworld.proto" />
   </ItemGroup>

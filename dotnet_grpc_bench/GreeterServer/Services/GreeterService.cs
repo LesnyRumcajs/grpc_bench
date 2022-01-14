@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading.Tasks;
 using Grpc.Core;
 using Helloworld;
 
-namespace GreeterServer.Services
+namespace GreeterServer.Services;
+
+public class GreeterService : Greeter.GreeterBase
 {
-    public class GreeterService : Greeter.GreeterBase
+    // Server side handler of the SayHello RPC
+    public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
     {
-        // Server side handler of the SayHello RPC
-        public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
-        {
-            return Task.FromResult(new HelloReply { Response = request.Request });
-        }
+        return Task.FromResult(new HelloReply { Response = request.Request });
     }
 }

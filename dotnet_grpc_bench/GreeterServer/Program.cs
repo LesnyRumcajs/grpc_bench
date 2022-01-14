@@ -16,16 +16,9 @@
 
 #endregion
 
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using GreeterServer.Services;
 using GreeterServer;
-using System;
+using GreeterServer.Services;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,4 +43,4 @@ app.Lifetime.ApplicationStarted.Register(() => Console.WriteLine("Application st
 app.UseMiddleware<ServiceProvidersMiddleware>();
 app.MapGrpcService<GreeterService>();
 
-await app.RunAsync();
+app.Run();
