@@ -1,4 +1,5 @@
 ![CI](https://github.com/LesnyRumcajs/grpc_bench/workflows/CI/badge.svg)
+[<img alt="Discord" src="https://img.shields.io/discord/932736311733915668.svg?style=for-the-badge&label=Discord&logo=discord" height="20">](https://discord.gg/NAjC2RRdPg)
 
 One repo to finally have a clear, objective gRPC benchmark with code for everyone to verify and improve.
 
