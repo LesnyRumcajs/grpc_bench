@@ -72,9 +72,12 @@ EOF
     - if: steps.cache.outputs.cache-hit != 'true'
       name: Pull image to feed cache
       run: |
-        docker pull ghcr.io/\${{ github.repository }}:$bench-\$GRPC_REQUEST_SCENARIO || true
-        docker tag  ghcr.io/\${{ github.repository }}:$bench-\$GRPC_REQUEST_SCENARIO \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO || true
-        docker push                 \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO || true
+        SLUG=\${SLUG,,} # Make sure docker tag is lowercase
+        docker pull    ghcr.io/\$SLUG:$bench-\$GRPC_REQUEST_SCENARIO || true
+        docker tag     ghcr.io/\$SLUG:$bench-\$GRPC_REQUEST_SCENARIO \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO || true
+        docker push \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO || true
+      env:
+        SLUG: \${{ github.repository }}
 
     - if: steps.cache.outputs.cache-hit != 'true'
       name: Build $bench
@@ -126,9 +129,11 @@ EOF
     - if: \${{ github.ref == 'refs/heads/master' }}
       name: If on master push image to GHCR
       run: |
-        docker tag                  \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO ghcr.io/\${{ github.repository }}:$bench-\$GRPC_REQUEST_SCENARIO
-        docker push ghcr.io/\${{ github.repository }}:$bench-\$GRPC_REQUEST_SCENARIO
-
+        SLUG=\${SLUG,,} # Make sure docker tag is lowercase
+        docker tag \$GRPC_IMAGE_NAME:$bench-\$GRPC_REQUEST_SCENARIO ghcr.io/\$SLUG:$bench-\$GRPC_REQUEST_SCENARIO
+        docker push   ghcr.io/\$SLUG:$bench-\$GRPC_REQUEST_SCENARIO
+      env:
+        SLUG: \${{ github.repository }}
 
 EOF
 
