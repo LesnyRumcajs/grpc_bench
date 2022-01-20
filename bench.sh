@@ -29,7 +29,7 @@ export GRPC_IMAGE_NAME="${GRPC_IMAGE_NAME:-grpc_bench}"
 # export GRPC_CLIENT_QPS
 
 wait_on_tcp50051() {
-	for ((i=1;i<=10*5*60;i++)); do
+	for ((i=1;i<=10*30;i++)); do
 		nc -z localhost 50051 && return 0
 		sleep .1
 	done

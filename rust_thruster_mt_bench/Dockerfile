@@ -4,8 +4,6 @@ WORKDIR /app
 COPY rust_thruster_mt_bench /app
 COPY proto /app/proto
 
-RUN cat Cargo.toml
-RUN cargo build --release
-RUN cargo build --release
+RUN cargo build --release --locked
 
-ENTRYPOINT cargo run --release
+ENTRYPOINT ["/app/target/release/helloworld-server"]
