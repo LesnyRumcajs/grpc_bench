@@ -6,6 +6,6 @@ WORKDIR /app
 COPY rust_grpcio_bench /app
 COPY proto /app/src/proto
 
-RUN cargo build --release
+RUN cargo build --release --locked
 
-ENTRYPOINT cargo run --release
+ENTRYPOINT ["/app/target/release/helloworld-server"]

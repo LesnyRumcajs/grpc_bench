@@ -5,6 +5,6 @@ COPY rust_tonic_st_bench /app
 COPY proto /app/proto
 
 RUN rustup component add rustfmt
-RUN cargo build --release
+RUN cargo build --release --locked
 
-ENTRYPOINT cargo run --release
+ENTRYPOINT ["/app/target/release/helloworld-server"]
