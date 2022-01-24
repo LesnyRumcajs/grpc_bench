@@ -7,6 +7,6 @@ COPY proto/helloworld/helloworld.proto /app/src/main/proto/helloworld.proto
 RUN /app/gradlew installDist
 
 ENV GC "-XX:+UseZGC"
-ENV JAVA_OPTS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
+ENV JAVA_OPTS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70 -XX:+AlwaysPreTouch -XX:-UsePerfData"
 
 ENTRYPOINT [ "/app/build/install/examples/bin/hello-world-server" ]
