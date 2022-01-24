@@ -1,4 +1,4 @@
-FROM adoptopenjdk:16_36-jdk-hotspot
+FROM bellsoft/liberica-openjdk-centos:17.0.2
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench /app
