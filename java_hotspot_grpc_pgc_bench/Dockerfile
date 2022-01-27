@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjdk-centos:17.0.2
+FROM eclipse-temurin:17
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench /app

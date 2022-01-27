@@ -57,7 +57,7 @@ protobuf {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_16
+    sourceCompatibility = JavaVersion.VERSION_17
 }
 
 application {

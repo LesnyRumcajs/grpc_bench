@@ -1,4 +1,4 @@
-FROM adoptopenjdk:16_36-jdk-hotspot
+FROM eclipse-temurin:17
 
 WORKDIR /app
 COPY kotlin_grpc_bench /app
