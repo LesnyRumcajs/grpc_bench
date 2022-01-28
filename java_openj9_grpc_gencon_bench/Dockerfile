@@ -8,7 +8,7 @@ COPY proto/helloworld/helloworld.proto /app/src/main/proto/helloworld.proto
 RUN /app/gradlew installDist
 
 ENV GC "-Xpolicy:gencon"
-ENV JAVA_OPTS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70 -XX:+AlwaysPreTouch -XX:-UsePerfData"
+ENV JAVA_OPTS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
 
 RUN /app/populate_scc.sh
 ENV JAVA_OPTS "${JAVA_OPTS} -Xshareclasses:name=grcp,cacheDir=/app/.classCache"
