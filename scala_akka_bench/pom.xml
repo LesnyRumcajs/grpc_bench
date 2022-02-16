@@ -11,8 +11,8 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <akka.version>2.6.8</akka.version>
-    <akka.grpc.version>1.0.0</akka.grpc.version>
+    <akka.version>2.6.18</akka.version>
+    <akka.grpc.version>2.1.3</akka.grpc.version>
     <scala.binary.version>2.13</scala.binary.version>
     <grpc.version>1.28.1</grpc.version>
     <project.encoding>UTF-8</project.encoding>
