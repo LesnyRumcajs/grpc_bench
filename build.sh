@@ -6,6 +6,10 @@
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 export GRPC_IMAGE_NAME="${GRPC_IMAGE_NAME:-grpc_bench}"
 
+# Build ghz Docker image.
+# See ghz-tool/Dockerfile for details/version
+docker build -t ghz_bench:latest ./ghz-tool/
+
 ## The list of benchmarks to build
 BENCHMARKS_TO_BUILD="${@}"
 ##  ...or use all the *_bench dirs by default
