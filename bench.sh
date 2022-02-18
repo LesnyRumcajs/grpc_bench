@@ -75,7 +75,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
     	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
     	    -v "${PWD}/payload:/payload:ro" \
     		--cpus $GRPC_CLIENT_CPUS \
-    		ghcr.io/bojand/ghz \
+    		obvionaoe/ghz \
     		--proto=/proto/helloworld/helloworld.proto \
     		--call=helloworld.Greeter.SayHello \
             --insecure \
@@ -101,7 +101,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
 	    -v "${PWD}/payload:/payload:ro" \
 		--cpus $GRPC_CLIENT_CPUS \
-		ghcr.io/bojand/ghz \
+		obvionaoe/ghz \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
         --insecure \
