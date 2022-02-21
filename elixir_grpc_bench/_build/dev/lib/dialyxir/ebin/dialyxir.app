@@ -1,0 +1,10 @@
+{application,dialyxir,
+             [{applications,[kernel,stdlib,elixir,dialyzer,crypto,mix]},
+              {description,"Mix tasks to simplify use of Dialyzer in Elixir projects.\n"},
+              {modules,['Elixir.Dialyxir.Dialyzer',
+                        'Elixir.Dialyxir.Dialyzer.Runner',
+                        'Elixir.Dialyxir.Output','Elixir.Dialyxir.Plt',
+                        'Elixir.Dialyxir.Project',
+                        'Elixir.Mix.Tasks.Dialyzer']},
+              {registered,[]},
+              {vsn,"0.5.1"}]}.

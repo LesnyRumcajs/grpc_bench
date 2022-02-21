@@ -1,6 +1,6 @@
 import Config
 
-config :grpc, start_server: true
+config :falco, start_server: true
 
 config :logger,
   level: :error,

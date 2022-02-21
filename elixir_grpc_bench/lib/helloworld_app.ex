@@ -3,7 +3,7 @@ defmodule HelloworldApp do
 
   def start(_type, _args) do
     children = [
-      {GRPC.Server.Supervisor,
+      {Falco.Server.Supervisor,
        {Helloworld.Endpoint, 50051, [num_acceptors: 1000, max_connections: 1_000_000]}}
     ]
 
