@@ -1,0 +1,12 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"grpc": {"path":"grpc-dlang"},
+		"hunt": "1.7.15",
+		"hunt-extra": "1.2.3",
+		"hunt-http": "0.8.1",
+		"hunt-net": "0.7.1",
+		"hunt-openssl": "1.0.5",
+		"protobuf": "0.6.2"
+	}
+}
