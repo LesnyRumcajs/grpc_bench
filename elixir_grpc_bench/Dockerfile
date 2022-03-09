@@ -13,7 +13,7 @@ RUN cp /root/.mix/escripts/protoc-gen-elixir /usr/bin/
 RUN protoc --proto_path=/app/proto/helloworld --elixir_out=plugins=grpc:./lib/ helloworld.proto
 
 ENV MIX_ENV=prod
-RUN mix do deps.get, compile
+RUN mix do clean, deps.clean --all, deps.get, compile
 
 RUN echo "+sbwt none" >> /app/rel/vm.args.eex \
     && echo "+sbwtdcpu none" >> /app/rel/vm.args.eex \
