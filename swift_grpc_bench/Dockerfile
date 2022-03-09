@@ -1,4 +1,4 @@
-FROM swift:5.5-focal
+FROM swift:5.5-focal AS builder
 
 WORKDIR /app
 
@@ -20,4 +20,9 @@ RUN protoc --proto_path=/app/proto/helloworld --plugin=/usr/local/bin/protoc-gen
 # for faster subsequent builds.
 RUN swift package resolve
 RUN swift build -c release -Xswiftc -enforce-exclusivity=unchecked
+
+FROM swift:5.5-focal-slim
+WORKDIR /app
+RUN mkdir /app/.build
+COPY --from=builder /app/.build /app/.build
 ENTRYPOINT [ "/app/.build/release/Server" ]
