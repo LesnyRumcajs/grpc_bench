@@ -1,4 +1,4 @@
-FROM dlang2/ldc-ubuntu:1.26.0
+FROM dlang2/ldc-ubuntu:1.26.0 AS builder
 
 RUN apt update && apt install -y protobuf-compiler git cmake g++
 
@@ -26,4 +26,7 @@ RUN protoc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_dlang_plugin --grpc_out=
 
 RUN dub build -b release
 
+FROM ubuntu:18.04
+WORKDIR /app
+COPY --from=builder /app/server .
 ENTRYPOINT [ "/app/server" ]
