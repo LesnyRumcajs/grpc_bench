@@ -2,7 +2,7 @@
 [{<<"acceptor_pool">>,{pkg,<<"acceptor_pool">>,<<"1.0.0">>},1},
  {<<"chatterbox">>,
   {git,"https://github.com/psalin/chatterbox.git",
-       {ref,"50f570fb82a239292615663ac246df74cecb5a12"}},
+       {ref,"ba9c97ffec688b82871640de1ec20f35bba827ed"}},
   0},
  {<<"ctx">>,{pkg,<<"ctx">>,<<"0.6.0">>},1},
  {<<"gproc">>,{pkg,<<"gproc">>,<<"0.8.0">>},1},
