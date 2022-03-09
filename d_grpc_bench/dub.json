@@ -1,0 +1,10 @@
+{
+	"name": "server",
+	"description": "A simple example for gRPC.",
+	"license": "MIT",
+	"targetType": "executable",
+	"dependencies": {
+		"grpc" :{"path": "grpc-dlang"}
+	},
+	"dflags-ldc": ["-flto=full"]
+}
