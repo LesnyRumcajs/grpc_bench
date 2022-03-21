@@ -6,7 +6,7 @@ scalaVersion := "2.13.2"
 
 run / fork := true
 
-val grpcVersion = "1.34.0"
+val grpcVersion = "1.34.1"
 
 PB.targets in Compile := Seq(
     scalapb.gen(grpc = true) -> (sourceManaged in Compile).value,
