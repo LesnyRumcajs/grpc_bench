@@ -492,6 +492,42 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
+  java_armeria_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_armeria_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build java_armeria_bench
+      run: ./build.sh java_armeria_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark java_armeria_bench
+      run: ./bench.sh java_armeria_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:java_armeria_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
   java_hotspot_grpc_g1gc_bench:
     runs-on: ubuntu-latest
     needs:
