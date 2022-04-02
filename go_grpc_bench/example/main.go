@@ -24,6 +24,7 @@ import (
 	"log"
 	"net"
 
+	_ "go.uber.org/automaxprocs"
 	"google.golang.org/grpc"
 	pb "local/proto/helloworld"
 )

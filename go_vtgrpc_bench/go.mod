@@ -7,6 +7,7 @@ require (
 	google.golang.org/genproto v0.0.0-20200806141610-86f49bd18e98
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.27.1
+	go.uber.org/automaxprocs v1.4.0
 )
 
 replace local => ./
