@@ -1,13 +1,15 @@
 use dotenv::dotenv;
 use log::info;
 use std::env;
-use thruster::context::hyper_request::HyperRequest;
-use thruster::{async_middleware, middleware_fn};
-use thruster::{App, ThrusterServer};
-use thruster::{MiddlewareNext, MiddlewareResult};
-use thruster_grpc::context::{generate_context, ProtoContext as Ctx};
-use thruster_grpc::server::ProtoServer;
-use thruster_grpc::util::{context_to_message, message_to_context};
+use thruster::{
+    async_middleware, context::hyper_request::HyperRequest, middleware_fn, App, MiddlewareNext,
+    MiddlewareResult, ThrusterServer,
+};
+use thruster_grpc::{
+    context::{generate_context, ProtoContext as Ctx},
+    server::ProtoServer,
+    util::{context_to_message, message_to_context},
+};
 
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
