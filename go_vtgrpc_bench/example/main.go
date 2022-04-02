@@ -24,6 +24,8 @@ import (
 	"log"
 	"net"
 
+	_ "go.uber.org/automaxprocs"
+
 	"google.golang.org/grpc"
 	vtgrpc "github.com/planetscale/vtprotobuf/codec/grpc"
 	"google.golang.org/grpc/encoding"
