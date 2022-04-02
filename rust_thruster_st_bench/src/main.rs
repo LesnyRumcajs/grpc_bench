@@ -31,7 +31,7 @@ pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> Middlewa
     .await)
 }
 
-#[tokio::main(core_threads = 1)]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let _ = dotenv();
 
@@ -42,11 +42,12 @@ async fn main() {
 
     info!("Starting server at {}:{}!", host, port);
 
-    let mut app = App::<HyperRequest, Ctx, ()>::create(generate_context, ());
-    app.post(
+    let app = App::<HyperRequest, Ctx, ()>::create(generate_context, ()).post(
         "/helloworld.Greeter/SayHello",
         async_middleware!(Ctx, [say_hello]),
     );
 
-    ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()).await;
+    ProtoServer::new(app)
+        .build(&host, port.parse::<u16>().unwrap())
+        .await;
 }

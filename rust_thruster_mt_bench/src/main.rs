@@ -31,8 +31,7 @@ pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> Middlewa
     .await)
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let _ = dotenv();
 
     env_logger::init();
@@ -42,11 +41,21 @@ async fn main() {
 
     info!("Starting server at {}:{}!", host, port);
 
-    let mut app = App::<HyperRequest, Ctx, ()>::create(generate_context, ());
-    app.post(
+    let app = App::<HyperRequest, Ctx, ()>::create(generate_context, ()).post(
         "/helloworld.Greeter/SayHello",
         async_middleware!(Ctx, [say_hello]),
     );
 
-    ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()).await;
+    let cpus = std::env::var("GRPC_SERVER_CPUS")
+        .map(|v| v.parse().unwrap())
+        .unwrap_or(1);
+
+    println!("Running with {} threads", cpus);
+
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(cpus)
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()))
 }
