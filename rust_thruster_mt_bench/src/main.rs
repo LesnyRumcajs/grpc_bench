@@ -1,13 +1,15 @@
 use dotenv::dotenv;
 use log::info;
 use std::env;
-use thruster::context::hyper_request::HyperRequest;
-use thruster::{async_middleware, middleware_fn};
-use thruster::{App, ThrusterServer};
-use thruster::{MiddlewareNext, MiddlewareResult};
-use thruster_grpc::context::{generate_context, ProtoContext as Ctx};
-use thruster_grpc::server::ProtoServer;
-use thruster_grpc::util::{context_to_message, message_to_context};
+use thruster::{
+    async_middleware, context::hyper_request::HyperRequest, middleware_fn, App, MiddlewareNext,
+    MiddlewareResult, ThrusterServer,
+};
+use thruster_grpc::{
+    context::{generate_context, ProtoContext as Ctx},
+    server::ProtoServer,
+    util::{context_to_message, message_to_context},
+};
 
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
@@ -31,8 +33,7 @@ pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> Middlewa
     .await)
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let _ = dotenv();
 
     env_logger::init();
@@ -42,11 +43,21 @@ async fn main() {
 
     info!("Starting server at {}:{}!", host, port);
 
-    let mut app = App::<HyperRequest, Ctx, ()>::create(generate_context, ());
-    app.post(
+    let app = App::<HyperRequest, Ctx, ()>::create(generate_context, ()).post(
         "/helloworld.Greeter/SayHello",
         async_middleware!(Ctx, [say_hello]),
     );
 
-    ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()).await;
+    let cpus = std::env::var("GRPC_SERVER_CPUS")
+        .map(|v| v.parse().unwrap())
+        .unwrap_or(1);
+
+    info!("Running with {} threads", cpus);
+
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(cpus)
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(ProtoServer::new(app).build(&host, port.parse::<u16>().unwrap()))
 }
