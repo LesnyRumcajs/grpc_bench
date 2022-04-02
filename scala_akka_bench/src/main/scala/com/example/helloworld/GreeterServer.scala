@@ -53,7 +53,7 @@ class GreeterServer(implicit system: ActorSystem[_]) {
     // Akka HTTP 10.1 requires adapters to accept the new actors APIs
     val bound = Http()(system.toClassic).bindAndHandleAsync(
       service,
-      interface = "127.0.0.1",
+      interface = "0.0.0.0",
       port = 50051,
       connectionContext = HttpConnectionContext()
     )(SystemMaterializer(system).materializer)
