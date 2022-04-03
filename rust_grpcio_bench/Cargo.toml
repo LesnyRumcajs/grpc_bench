@@ -2,7 +2,7 @@
 name = "rust_grpcio"
 version = "0.1.0"
 authors = ["Trisfald <trisfald@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [profile.release]
 opt-level = 3
@@ -11,7 +11,7 @@ lto = true
 
 [dependencies]
 jemallocator = "0.3.2"
-grpcio = "0.9"
+grpcio = "0.10"
 protobuf = "~2"
 futures = "0.3"
 

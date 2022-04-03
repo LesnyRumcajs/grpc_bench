@@ -2,7 +2,7 @@
 name = "rust_tonic"
 version = "0.1.0"
 authors = ["LesnyRumcajs <lesny.rumcajs+github@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [profile.release]
 opt-level = 3
@@ -11,12 +11,12 @@ lto = true
 
 [dependencies]
 jemallocator = "0.3.2"
-tonic = "0.5"
-prost = "0.8"
-tokio = { version = "1.4", features = ["rt", "macros", "io-util"] }
+tonic = "0.7"
+prost = "0.10"
+tokio = { version = "1.17", features = ["rt", "macros", "io-util"] }
 
 [build-dependencies]
-tonic-build = "0.5"
+tonic-build = "0.7"
 
 [[bin]]
 name = "helloworld-server"
