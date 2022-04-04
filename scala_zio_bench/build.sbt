@@ -2,15 +2,15 @@ name := "zio-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.8"
 
 run / fork := true
 
-val grpcVersion = "1.34.1"
+val grpcVersion = "1.41.2"
 
-PB.targets in Compile := Seq(
-    scalapb.gen(grpc = true) -> (sourceManaged in Compile).value,
-    scalapb.zio_grpc.ZioCodeGenerator -> (sourceManaged in Compile).value,
+Compile / PB.targets := Seq(
+    scalapb.gen(grpc = true) -> (Compile / sourceManaged).value,
+    scalapb.zio_grpc.ZioCodeGenerator -> (Compile / sourceManaged).value,
 )
 
 libraryDependencies ++= Seq(
