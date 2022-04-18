@@ -1,4 +1,4 @@
-FROM adoptopenjdk:14.0.2_8-jre-openj9-0.21.0-bionic
+FROM adoptopenjdk:16.0.1_9-jre-openj9-0.26.0-focal
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench /app
