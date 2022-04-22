@@ -1,4 +1,4 @@
-FROM adoptopenjdk:16_36-jdk-hotspot
+FROM openjdk:17
 
 WORKDIR /app
 COPY java_micronaut_bench /app
