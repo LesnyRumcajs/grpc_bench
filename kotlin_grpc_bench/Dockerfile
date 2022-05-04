@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM openjdk:18.0.1
 
 WORKDIR /app
 COPY kotlin_grpc_bench /app
