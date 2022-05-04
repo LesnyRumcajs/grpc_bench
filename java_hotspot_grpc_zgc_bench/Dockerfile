@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM openjdk:18.0.1
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench /app
