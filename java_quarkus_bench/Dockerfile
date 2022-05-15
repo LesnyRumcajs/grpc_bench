@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:ubi
+FROM openjdk:18.0.1
 
 WORKDIR /app
 
