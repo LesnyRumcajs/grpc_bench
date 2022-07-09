@@ -420,6 +420,42 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
+  haskell_grpc_haskell_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'haskell_grpc_haskell_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build haskell_grpc_haskell_bench
+      run: ./build.sh haskell_grpc_haskell_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark haskell_grpc_haskell_bench
+      run: ./bench.sh haskell_grpc_haskell_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:haskell_grpc_haskell_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
   java_aot_bench:
     runs-on: ubuntu-latest
     needs:
