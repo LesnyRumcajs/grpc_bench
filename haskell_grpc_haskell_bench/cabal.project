@@ -1,0 +1,17 @@
+packages:
+  .
+
+source-repository-package
+    type: git
+    location: https://github.com/awakesecurity/gRPC-haskell.git
+    tag: d20c20d63c170b5eaf5725f03f7b7060352af402
+
+source-repository-package
+    type: git
+    location: https://github.com/awakesecurity/gRPC-haskell.git
+    tag: d20c20d63c170b5eaf5725f03f7b7060352af402
+    subdir: core
+
+package grpc-haskell-core
+  extra-include-dirs: /usr/local/include
+  extra-lib-dirs: /usr/local/lib
