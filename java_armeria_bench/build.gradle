@@ -15,8 +15,8 @@ sourceCompatibility = 17
 targetCompatibility = 17
 
 
-def armeriaVersion = '1.15.0'
-def grpcVersion = '1.45.0'
+def armeriaVersion = '1.17.1'
+def grpcVersion = '1.47.0'
 def protocVersion = '3.19.2'
 
 dependencies {
