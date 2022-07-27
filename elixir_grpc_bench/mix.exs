@@ -14,15 +14,13 @@ defmodule Helloworld.Mixfile do
   end
 
   def application do
-    [mod: {HelloworldApp, []}, applications: [:logger, :grpc]]
+    [mod: {HelloworldApp, []}, applications: [:logger, :grpc, :protobuf]]
   end
 
   defp deps do
     [
-      # {:grpc, github: "elixir-grpc/grpc"},
-      {:grpc, github: "eigr/grpc"},
-      {:protobuf, "~> 0.9.0", override: true},
-      {:cowlib, "~> 2.11", override: true},
+      {:grpc, "~> 0.5.0"},
+      {:protobuf, "~> 0.10.0"},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}
     ]
   end
