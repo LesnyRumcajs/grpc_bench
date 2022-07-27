@@ -1,7 +1,10 @@
-val zioGrpcVersion = "0.4.2"
+val zioGrpcVersion = "0.6.0-test1"
 
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.0-RC4")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
 
-libraryDependencies += "com.thesamet.scalapb.zio-grpc" %% "zio-grpc-codegen" % zioGrpcVersion
+libraryDependencies ++= Seq(
+  "com.thesamet.scalapb.zio-grpc" %% "zio-grpc-codegen" % zioGrpcVersion,
+  "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11"
+)
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.2.0")

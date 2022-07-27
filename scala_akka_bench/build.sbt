@@ -6,8 +6,8 @@ scalaVersion := "2.13.8"
 
 run / fork := true
 
-val akkaVersion = "2.6.18"
-val akkaHttpVersion = "10.2.8"
+val akkaVersion = "2.6.19"
+val akkaHttpVersion = "10.2.9"
 
 enablePlugins(AkkaGrpcPlugin)
 
@@ -15,7 +15,7 @@ enablePlugins(AkkaGrpcPlugin)
 resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.11",
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test,
-  "org.scalatest" %% "scalatest" % "3.1.1" % Test
+  "org.scalatest" %% "scalatest" % "3.2.12" % Test
 )
 
 // Akka and Google provided proto files seem to differ a bit so we need to choose

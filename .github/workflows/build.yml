@@ -204,23 +204,23 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
-  csharp_grpc_bench:
+  d_grpc_bench:
     runs-on: ubuntu-latest
     needs:
     - set-image-name
     - changed
-    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'csharp_grpc_bench/')
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'd_grpc_bench/')
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Build csharp_grpc_bench
-      run: ./build.sh csharp_grpc_bench
+    - name: Build d_grpc_bench
+      run: ./build.sh d_grpc_bench
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
-    - name: Benchmark csharp_grpc_bench
-      run: ./bench.sh csharp_grpc_bench
+    - name: Benchmark d_grpc_bench
+      run: ./bench.sh d_grpc_bench
       env:
         GRPC_BENCHMARK_DURATION: 30s
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
@@ -235,7 +235,7 @@ jobs:
 
     - if: github.ref == 'refs/heads/master'
       name: If on master push image to GHCR
-      run: docker push $GRPC_IMAGE_NAME:csharp_grpc_bench-complex_proto
+      run: docker push $GRPC_IMAGE_NAME:d_grpc_bench-complex_proto
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
@@ -452,6 +452,42 @@ jobs:
     - if: github.ref == 'refs/heads/master'
       name: If on master push image to GHCR
       run: docker push $GRPC_IMAGE_NAME:java_aot_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  java_armeria_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_armeria_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build java_armeria_bench
+      run: ./build.sh java_armeria_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark java_armeria_bench
+      run: ./bench.sh java_armeria_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:java_armeria_bench-complex_proto
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
@@ -1316,6 +1352,42 @@ jobs:
     - if: github.ref == 'refs/heads/master'
       name: If on master push image to GHCR
       run: docker push $GRPC_IMAGE_NAME:scala_zio_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  swift_grpc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'swift_grpc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Build swift_grpc_bench
+      run: ./build.sh swift_grpc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark swift_grpc_bench
+      run: ./bench.sh swift_grpc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:swift_grpc_bench-complex_proto
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 

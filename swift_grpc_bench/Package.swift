@@ -7,7 +7,7 @@ let package = Package(
     name: "Server",
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
-        .library(
+        .executable(
             name: "Server",
             targets: ["Server"]),
             // Model for the HelloWorld example
@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.0.0-alpha.17")
+        .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.7.3")
     ],
     targets: [
         .target(

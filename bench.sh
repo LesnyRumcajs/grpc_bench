@@ -57,7 +57,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--memory "${GRPC_SERVER_RAM}" \
 		-e GRPC_SERVER_CPUS \
 		-e GRPC_SERVER_RAM \
-		--network=host \
+		-p 50051:50051 \
 		--detach \
 		--tty \
 		"$GRPC_IMAGE_NAME:${NAME}-$GRPC_REQUEST_SCENARIO" >/dev/null
@@ -75,7 +75,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
     	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
     	    -v "${PWD}/payload:/payload:ro" \
     		--cpus $GRPC_CLIENT_CPUS \
-    		ghcr.io/bojand/ghz \
+    	  obvionaoe/ghz:v0.103.0 \
     		--proto=/proto/helloworld/helloworld.proto \
     		--call=helloworld.Greeter.SayHello \
             --insecure \
@@ -101,7 +101,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
 	    -v "${PWD}/payload:/payload:ro" \
 		--cpus $GRPC_CLIENT_CPUS \
-		ghcr.io/bojand/ghz \
+    obvionaoe/ghz:v0.103.0 \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
         --insecure \
