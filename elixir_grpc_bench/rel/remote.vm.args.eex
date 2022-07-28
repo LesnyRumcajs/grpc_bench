@@ -9,7 +9,3 @@
 
 ## Tweak GC to run more often
 ##-env ERL_FULLSWEEP_AFTER 10
-+sbwt none
-+sbwtdcpu none
-+sbwtdio none
-+K true

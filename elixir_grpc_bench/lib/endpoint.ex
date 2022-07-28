@@ -1,6 +1,6 @@
 defmodule Helloworld.Endpoint do
-  use Falco.Endpoint
+  use GRPC.Endpoint
 
-  intercept(Falco.Logger.Server)
+  intercept(GRPC.Logger.Server)
   run(Helloworld.Greeter.Server)
 end

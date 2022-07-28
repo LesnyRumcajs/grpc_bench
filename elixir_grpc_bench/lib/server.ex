@@ -1,9 +1,11 @@
 defmodule Helloworld.Greeter.Server do
-  use Falco.Server, service: Helloworld.Greeter.Service, compressors: [Falco.Compressor.Gzip]
+  use GRPC.Server, service: Helloworld.Greeter.Service, compressors: [GRPC.Compressor.Gzip]
 
-  @spec say_hello(Helloworld.HelloRequest.t(), Falco.Server.Stream.t()) ::
+  alias Helloworld.HelloReply
+
+  @spec say_hello(Helloworld.HelloRequest.t(), GRPC.Server.Stream.t()) ::
           Helloworld.HelloReply.t()
   def say_hello(request, _stream) do
-    Helloworld.HelloReply.new(response: request.request)
+    HelloReply.new(response: request.request)
   end
 end
