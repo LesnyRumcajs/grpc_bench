@@ -1,4 +1,4 @@
-FROM node:stretch-slim
+FROM node:16.17
 
 WORKDIR /app
 COPY node_grpcjs_st_bench /app
