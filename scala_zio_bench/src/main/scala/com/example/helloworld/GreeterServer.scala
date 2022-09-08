@@ -1,12 +1,10 @@
-package io.grpc.examples.helloworld
+package com.example.helloworld
 
-import io.grpc.ServerBuilder
 import scalapb.zio_grpc.{ServerMain, ServiceList}
-import zio.ZEnv
 
 import java.util.concurrent.Executors
 
-object MyMain extends ServerMain {
+object GreeterServer extends ServerMain {
   def services = ServiceList.add(GreeterImpl)
 
   override def builder = {
@@ -28,7 +26,7 @@ object MyMain extends ServerMain {
      */
     val threads = System.getenv("JVM_EXECUTOR_THREADS")
     var i_threads = Runtime.getRuntime.availableProcessors
-    if (threads != null && !threads.isEmpty) i_threads = threads.toInt
+    if (threads != null && threads.nonEmpty) i_threads = threads.toInt
 
     val value = System.getenv.getOrDefault("JVM_EXECUTOR_TYPE", "workStealing")
     value match {

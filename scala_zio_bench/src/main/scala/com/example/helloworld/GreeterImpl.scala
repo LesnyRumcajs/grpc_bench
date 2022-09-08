@@ -1,12 +1,12 @@
-package io.grpc.examples.helloworld
+package com.example.helloworld
 
 import io.grpc.Status
 import io.grpc.examples.helloworld.helloworld.ZioHelloworld.ZGreeter
 import io.grpc.examples.helloworld.helloworld.{HelloReply, HelloRequest}
-import zio.{ZEnv, ZIO}
+import zio.ZIO
 
 
-object GreeterImpl extends ZGreeter[ZEnv, Any] {
-  override def sayHello(request: HelloRequest): ZIO[ZEnv, Status, HelloReply] =
+object GreeterImpl extends ZGreeter[Any, Any] {
+  override def sayHello(request: HelloRequest): ZIO[Any, Status, HelloReply] =
     ZIO.succeed(HelloReply(request.request))
 }

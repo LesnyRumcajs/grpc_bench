@@ -6,7 +6,7 @@ scalaVersion := "2.13.8"
 
 run / fork := true
 
-val grpcVersion = "1.47.0"
+val grpcVersion = "1.49.0"
 
 Compile / PB.targets := Seq(
     scalapb.gen(grpc = true) -> (Compile / sourceManaged).value,
@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
 )
 
 // https://scalapb.github.io/docs/grpc/#grpc-netty-issues
-assemblyMergeStrategy in assembly := {
+assembly / assemblyMergeStrategy := {
     case x if x.contains("io.netty.versions.properties") => MergeStrategy.discard
     case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
