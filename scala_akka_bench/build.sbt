@@ -6,8 +6,8 @@ scalaVersion := "2.13.8"
 
 run / fork := true
 
-val akkaVersion = "2.6.19"
-val akkaHttpVersion = "10.2.9"
+val akkaVersion = "2.6.20"
+val akkaHttpVersion = "10.2.10"
 
 enablePlugins(AkkaGrpcPlugin)
 
