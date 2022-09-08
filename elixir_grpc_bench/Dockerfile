@@ -1,4 +1,4 @@
-FROM elixir:slim
+FROM elixir:1.14.0
 
 WORKDIR /app
 COPY elixir_grpc_bench /app
@@ -20,7 +20,7 @@ RUN mix release.init
 RUN echo "+sbwt none" >> /app/rel/vm.args.eex \
     && echo "+sbwtdcpu none" >> /app/rel/vm.args.eex \
     && echo "+sbwtdio none" >> /app/rel/vm.args.eex \
-    && echo "+K true" >> /app/rel/vm.args.eex 
+    && echo "+K true" >> /app/rel/vm.args.eex
 
 RUN mix release
 
