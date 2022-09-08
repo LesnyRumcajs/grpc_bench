@@ -18,7 +18,7 @@ RUN wget --no-verbose https://github.com/Kitware/CMake/releases/download/v${CMAK
     && chmod +x ./cmake-${CMAKE_VERSION}-linux-x86_64.sh \
     && ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=/usr
 
-ARG ASIO_GRPC_VERSION=1.1.0
+ARG ASIO_GRPC_VERSION=1.0.0
 RUN wget --no-verbose https://github.com/Tradias/asio-grpc/archive/refs/tags/v${ASIO_GRPC_VERSION}.tar.gz \
     && tar zxf v${ASIO_GRPC_VERSION}.tar.gz -C /app \
     && cd asio-grpc-${ASIO_GRPC_VERSION} \
