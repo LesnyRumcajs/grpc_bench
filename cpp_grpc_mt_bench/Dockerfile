@@ -1,4 +1,4 @@
-FROM gcc:11
+FROM gcc:12.2.0
 
 RUN apt-get update && apt-get install -y protobuf-compiler protobuf-compiler-grpc libgrpc++-dev libjemalloc-dev
 
