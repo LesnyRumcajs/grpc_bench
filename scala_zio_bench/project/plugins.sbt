@@ -1,4 +1,4 @@
-val zioGrpcVersion = "0.6.0-test1"
+val zioGrpcVersion = "0.6.0-test4"
 
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
 
