@@ -1,3 +1,6 @@
+<p align="center">
+<img width="583" alt="image" src="https://user-images.githubusercontent.com/9642092/189478887-a9ad0a81-8cdc-4983-8954-80347feb002e.png">
+
 ![CI](https://github.com/LesnyRumcajs/grpc_bench/actions/workflows/build.yml/badge.svg)
 [<img alt="Discord" src="https://img.shields.io/discord/932736311733915668.svg?style=for-the-badge&label=Discord&logo=discord" height="20">](https://discord.gg/NAjC2RRdPg)
 
