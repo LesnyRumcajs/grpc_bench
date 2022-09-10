@@ -44,11 +44,21 @@ public class ServerBuilderListener implements BeanCreatedEventListener<ServerBui
     
         var value = System.getenv().getOrDefault("JVM_EXECUTOR_TYPE", "workStealing");
         switch (value) {
-          case "direct" -> sb = sb.directExecutor();
-          case "single" -> sb = sb.executor(Executors.newSingleThreadExecutor());
-          case "fixed" -> sb = sb.executor(Executors.newFixedThreadPool(i_threads));
-          case "workStealing" -> sb = sb.executor(Executors.newWorkStealingPool(i_threads));
-          case "cached" -> sb = sb.executor(Executors.newCachedThreadPool());
+            case "direct":
+                sb = sb.directExecutor();
+                break;
+            case "single":
+                sb = sb.executor(Executors.newSingleThreadExecutor());
+                break;
+            case "fixed":
+                sb = sb.executor(Executors.newFixedThreadPool(i_threads));
+                break;
+            case "workStealing":
+                sb = sb.executor(Executors.newWorkStealingPool(i_threads));
+                break;
+            case "cached":
+                sb = sb.executor(Executors.newCachedThreadPool());
+                break;
         }
     
         return sb;
