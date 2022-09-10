@@ -1,4 +1,4 @@
-FROM php:zts-buster
+FROM php:8.1.10-zts-bullseye
 
 WORKDIR /app
 
