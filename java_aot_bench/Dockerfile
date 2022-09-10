@@ -8,6 +8,6 @@ RUN /app/gradlew assemble
 
 RUN gu install native-image
 
-RUN native-image --no-server --static --no-fallback -jar /app/build/libs/java_aot_bench-0.1-all.jar
+RUN native-image --no-server --static --no-fallback -jar /app/build/libs/app-0.1-all.jar
 
 ENTRYPOINT [ "/app/hello-world-java" ]
