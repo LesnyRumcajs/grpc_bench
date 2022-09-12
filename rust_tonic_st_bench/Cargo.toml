@@ -10,7 +10,7 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-jemallocator = "0.3.2"
+jemallocator = "0.5.0"
 tonic = "0.7"
 prost = "0.10"
 tokio = { version = "1.17", features = ["rt", "macros", "io-util"] }

@@ -11,20 +11,20 @@ lto = true
 
 [dependencies]
 async-trait = "0.1"
-bytes = "0.5.3"
+bytes = "1.2.1"
 dotenv = "0.13.0"
 env_logger = "0.7.1"
 log = "0.4"
 hyper = "0.14.19"
-http = "0.2"
-http-body = "0.3.1"
-jemallocator = "0.3.2"
+http = "0.2.8"
+http-body = "0.4.5"
+jemallocator = "0.5.0"
 prost = "0.10.0"
-thruster = { version = "1.2.2", features = ["hyper_server"] }
+thruster = { version = "1.2.5", features = ["hyper_server"] }
 thruster-grpc = { git = "https://github.com/thruster-rs/thruster-grpc" }
-tokio = { version = "1.6.1", features = ["parking_lot", "rt-multi-thread", "macros", "io-util"] }
+tokio = { version = "1.21.0", features = ["parking_lot", "rt-multi-thread", "macros", "io-util"] }
 
-futures = "0.3.5"
+futures = "0.3.24"
 
 [build-dependencies]
 prost-build = "0.6"
