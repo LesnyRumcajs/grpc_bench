@@ -6,7 +6,7 @@
 
 One repo to finally have a clear, objective gRPC benchmark with code for everyone to verify and improve.
 
-Contributions are most welcome!
+Contributions are most welcome! Feel free to use [discussions](https://github.com/LesnyRumcajs/grpc_bench/discussions) in case of questions/issues or ideas. Also to submit your own benchmark results.
 
 See [Nexthink blog post](https://www.nexthink.com/blog/comparing-grpc-performance/) for a deeper overview of the project and recent results.
 
