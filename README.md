@@ -73,6 +73,6 @@ The benchmark can be configured through the following environment variables:
 Other parameters will depend on your use-case. Choose wisely.
 
 # Results
-You can find our sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios. Feel free to post the results to [discussions](https://github.com/LesnyRumcajs/grpc_bench/discussions/categories/benchmark-results)!
+You can find our old sample results in the [Wiki](https://github.com/LesnyRumcajs/grpc_bench/wiki). Be sure to run the benchmarks yourself if you have sufficient hardware, especially for multi-core scenarios. New results will be posted to [discussions](https://github.com/LesnyRumcajs/grpc_bench/discussions/categories/benchmark-results) and you are encouraged to publish yours as well!
 
 
