@@ -1,0 +1,45 @@
+plugins {
+    id 'application'
+    id "com.google.protobuf" version "0.8.19"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+repositories {
+    mavenCentral()
+}
+
+def grpcVersion = '1.49.1' // CURRENT_GRPC_VERSION
+def protobufVersion = '3.21.6'
+def protocVersion = protobufVersion
+
+dependencies {
+    implementation 'io.vertx:vertx-grpc-server:4.3.4'
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+    compileOnly "org.apache.tomcat:annotations-api:6.0.53"
+    runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+application {
+    mainClass = 'vertx.Main'
+}
