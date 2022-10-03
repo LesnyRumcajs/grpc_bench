@@ -1,4 +1,4 @@
-FROM adoptopenjdk:14.0.2_8-jre-openj9-0.21.0-bionic
+FROM ibm-semeru-runtimes:open-18.0.2_9-jdk
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench/ /app
