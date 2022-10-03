@@ -1,4 +1,4 @@
-FROM eclipse-temurin:18.0.2.1_1-jdk
+FROM eclipse-temurin:19_36-jdk
 
 WORKDIR /app
 COPY java_micronaut_bench /app
