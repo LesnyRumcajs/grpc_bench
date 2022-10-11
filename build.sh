@@ -30,8 +30,6 @@ for benchmark in ${BENCHMARKS_TO_BUILD}; do
 			--pull \
 			--compress \
 			--file "${benchmark}/Dockerfile" \
-			--cache-from="$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO" \
-			--build-arg BUILDKIT_INLINE_CACHE=1 \
 			--tag "$GRPC_IMAGE_NAME:${benchmark}-$GRPC_REQUEST_SCENARIO" \
 			. >"${benchmark}.tmp" 2>&1 &&
 			rm -f "${benchmark}.tmp" &&
