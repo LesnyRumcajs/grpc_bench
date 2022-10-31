@@ -96,7 +96,7 @@ while read -r bench; do
 
     - if: github.ref == 'refs/heads/master'
       name: Log in to GitHub Container Registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         registry: ghcr.io
         username: \${{ github.actor }}
