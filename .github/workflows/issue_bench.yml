@@ -30,7 +30,7 @@ jobs:
       env:
         GRPC_BENCHMARK_DURATION: ${{github.event.issue.body}}
     - name: Close Issue
-      uses: peter-evans/close-issue@v1
+      uses: peter-evans/close-issue@v2
       with:
         comment: |
           Here you go!
