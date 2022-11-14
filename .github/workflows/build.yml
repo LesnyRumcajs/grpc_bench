@@ -11,7 +11,7 @@ jobs:
   meta-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
     - run: git --no-pager diff --exit-code
 
@@ -35,7 +35,7 @@ jobs:
       base: ${{ steps.base.outputs.base }}
     steps:
     - name: Deep checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
@@ -68,7 +68,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'cpp_asio_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build cpp_asio_grpc_bench
       run: ./build.sh cpp_asio_grpc_bench
@@ -104,7 +104,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'cpp_grpc_mt_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build cpp_grpc_mt_bench
       run: ./build.sh cpp_grpc_mt_bench
@@ -140,7 +140,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'cpp_grpc_st_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build cpp_grpc_st_bench
       run: ./build.sh cpp_grpc_st_bench
@@ -176,7 +176,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'crystal_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build crystal_grpc_bench
       run: ./build.sh crystal_grpc_bench
@@ -212,7 +212,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'd_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build d_grpc_bench
       run: ./build.sh d_grpc_bench
@@ -248,7 +248,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'dotnet_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build dotnet_grpc_bench
       run: ./build.sh dotnet_grpc_bench
@@ -284,7 +284,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'elixir_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build elixir_grpc_bench
       run: ./build.sh elixir_grpc_bench
@@ -320,7 +320,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'erlang_grpcbox_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build erlang_grpcbox_bench
       run: ./build.sh erlang_grpcbox_bench
@@ -356,7 +356,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'go_connect_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build go_connect_bench
       run: ./build.sh go_connect_bench
@@ -392,7 +392,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'go_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build go_grpc_bench
       run: ./build.sh go_grpc_bench
@@ -428,7 +428,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'go_vtgrpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build go_vtgrpc_bench
       run: ./build.sh go_vtgrpc_bench
@@ -464,7 +464,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_aot_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_aot_bench
       run: ./build.sh java_aot_bench
@@ -500,7 +500,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_armeria_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_armeria_bench
       run: ./build.sh java_armeria_bench
@@ -536,7 +536,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_hotspot_grpc_g1gc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_hotspot_grpc_g1gc_bench
       run: ./build.sh java_hotspot_grpc_g1gc_bench
@@ -572,7 +572,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_hotspot_grpc_pgc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_hotspot_grpc_pgc_bench
       run: ./build.sh java_hotspot_grpc_pgc_bench
@@ -608,7 +608,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_hotspot_grpc_sgc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_hotspot_grpc_sgc_bench
       run: ./build.sh java_hotspot_grpc_sgc_bench
@@ -644,7 +644,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_hotspot_grpc_she_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_hotspot_grpc_she_bench
       run: ./build.sh java_hotspot_grpc_she_bench
@@ -680,7 +680,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_hotspot_grpc_zgc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_hotspot_grpc_zgc_bench
       run: ./build.sh java_hotspot_grpc_zgc_bench
@@ -716,7 +716,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_micronaut_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_micronaut_bench
       run: ./build.sh java_micronaut_bench
@@ -752,7 +752,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_micronaut_workstealing_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_micronaut_workstealing_bench
       run: ./build.sh java_micronaut_workstealing_bench
@@ -788,7 +788,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_openj9_grpc_gencon_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_openj9_grpc_gencon_bench
       run: ./build.sh java_openj9_grpc_gencon_bench
@@ -824,7 +824,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_quarkus_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_quarkus_bench
       run: ./build.sh java_quarkus_bench
@@ -860,7 +860,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_quarkus_native_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_quarkus_native_bench
       run: ./build.sh java_quarkus_native_bench
@@ -896,7 +896,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'java_vertx_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build java_vertx_grpc_bench
       run: ./build.sh java_vertx_grpc_bench
@@ -932,7 +932,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'kotlin_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build kotlin_grpc_bench
       run: ./build.sh kotlin_grpc_bench
@@ -968,7 +968,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'node_grpcjs_st_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build node_grpcjs_st_bench
       run: ./build.sh node_grpcjs_st_bench
@@ -1004,7 +1004,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'php_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build php_grpc_bench
       run: ./build.sh php_grpc_bench
@@ -1040,7 +1040,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'python_async_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build python_async_grpc_bench
       run: ./build.sh python_async_grpc_bench
@@ -1076,7 +1076,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'python_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build python_grpc_bench
       run: ./build.sh python_grpc_bench
@@ -1112,7 +1112,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'ruby_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build ruby_grpc_bench
       run: ./build.sh ruby_grpc_bench
@@ -1148,7 +1148,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_grpcio_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build rust_grpcio_bench
       run: ./build.sh rust_grpcio_bench
@@ -1184,7 +1184,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_thruster_mt_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build rust_thruster_mt_bench
       run: ./build.sh rust_thruster_mt_bench
@@ -1220,7 +1220,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_thruster_st_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build rust_thruster_st_bench
       run: ./build.sh rust_thruster_st_bench
@@ -1256,7 +1256,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_mt_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build rust_tonic_mt_bench
       run: ./build.sh rust_tonic_mt_bench
@@ -1292,7 +1292,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_st_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build rust_tonic_st_bench
       run: ./build.sh rust_tonic_st_bench
@@ -1328,7 +1328,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'scala_akka_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build scala_akka_bench
       run: ./build.sh scala_akka_bench
@@ -1364,7 +1364,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'scala_fs2_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build scala_fs2_bench
       run: ./build.sh scala_fs2_bench
@@ -1400,7 +1400,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'scala_zio_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build scala_zio_bench
       run: ./build.sh scala_zio_bench
@@ -1436,7 +1436,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'swift_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build swift_grpc_bench
       run: ./build.sh swift_grpc_bench
