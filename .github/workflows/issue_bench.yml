@@ -10,7 +10,7 @@ jobs:
     if: startsWith(github.event.issue.title, 'RUN BENCHMARK')
     steps:
     - name: Accept the task
-      uses: peter-evans/create-or-update-comment@v1
+      uses: peter-evans/create-or-update-comment@v2
       with:
         issue-number: ${{ github.event.issue.number }}  
         body: |
