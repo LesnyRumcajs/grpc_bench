@@ -1,4 +1,4 @@
-FROM golang:1.19.0-buster
+FROM golang:1.19.3-buster
 
 WORKDIR /app
 COPY go_vtgrpc_bench /app
