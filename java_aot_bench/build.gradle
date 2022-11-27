@@ -23,8 +23,8 @@ dependencies {
     implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut.grpc:micronaut-grpc-runtime")
     implementation("javax.annotation:javax.annotation-api")
-    implementation("io.grpc:grpc-protobuf:1.49.0")
-    implementation("io.grpc:grpc-stub:1.49.0")
+    implementation("io.grpc:grpc-protobuf:1.51.0")
+    implementation("io.grpc:grpc-stub:1.51.0")
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
     testImplementation("io.micronaut:micronaut-http-client")
@@ -52,7 +52,7 @@ sourceSets {
 protobuf {
     protoc { artifact = "com.google.protobuf:protoc:3.21.5" }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.49.0" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.51.0" }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

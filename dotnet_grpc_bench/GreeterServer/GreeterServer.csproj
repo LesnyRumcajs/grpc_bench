@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.50.0" />
 
     <Protobuf Include="..\..\proto\helloworld\helloworld.proto" Link="helloworld.proto" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-FROM swift:5.7.0 AS builder
+FROM swift:5.7.1 AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN protoc --proto_path=/app/proto/helloworld --plugin=/usr/local/bin/protoc-gen
 RUN swift package resolve
 RUN swift build -c release -Xswiftc -enforce-exclusivity=unchecked
 
-FROM swift:5.7.0
+FROM swift:5.7.1
 WORKDIR /app
 RUN mkdir /app/.build
 COPY --from=builder /app/.build /app/.build
