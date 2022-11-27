@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17
+FROM eclipse-temurin:19.0.1_10-jdk-focal
 
 WORKDIR /app
 COPY java_armeria_bench /app
