@@ -41,7 +41,7 @@ jobs:
 
     - name: Get changed files
       id: finder
-      uses: tj-actions/changed-files@v13.1
+      uses: tj-actions/changed-files@v26.1
 
     - name: Output whether base changed
       id: base
