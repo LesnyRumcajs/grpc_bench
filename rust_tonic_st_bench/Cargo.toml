@@ -13,7 +13,7 @@ lto = true
 jemallocator = "0.5.0"
 tonic = "0.7"
 prost = "0.10"
-tokio = { version = "1.17", features = ["rt", "macros", "io-util"] }
+tokio = { version = "1.23", features = ["rt", "macros", "io-util"] }
 
 [build-dependencies]
 tonic-build = "0.7"
