@@ -22,7 +22,7 @@ jemallocator = "0.5.0"
 prost = "0.10.0"
 thruster = { version = "1.2.5", features = ["hyper_server"] }
 thruster-grpc = { git = "https://github.com/thruster-rs/thruster-grpc" }
-tokio = { version = "1.21.0", features = ["rt", "macros", "io-util"] }
+tokio = { version = "1.23.1", features = ["rt", "macros", "io-util"] }
 
 futures = "0.3.24"
 
