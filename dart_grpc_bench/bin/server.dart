@@ -14,6 +14,9 @@
 // limitations under the License.
 
 /// Dart implementation of the gRPC helloworld.Greeter server.
+import 'dart:io';
+import 'dart:isolate';
+
 import 'package:grpc/grpc.dart';
 
 import 'package:helloworld/src/generated/helloworld.pb.dart';
@@ -27,7 +30,24 @@ class GreeterService extends GreeterServiceBase {
 }
 
 Future<void> main(List<String> args) async {
+  // await server.serve(port: 50051);
+  Map<String, String> env = Platform.environment;
+  final cpus = int.tryParse(env["GRPC_SERVER_CPUS"] ?? '1') ?? 1;
+
+  if (cpus > 1) {
+    for (var serve = 0; serve < cpus; serve++) {
+      Isolate.spawn(_startServer, []);
+    }
+  }
+  // Bind one server in current Isolate
+  _startServer();
+
+  print('Server listening on port 50051...');
+  await ProcessSignal.sigterm.watch().first;
+}
+
+void _startServer([List? args]) async {
   final server = Server([GreeterService()]);
-  await server.serve(port: 50051);
-  print('Server listening on port ${server.port}...');
+  await server.serve(
+      address: InternetAddress.anyIPv4, port: 50051, shared: true);
 }
