@@ -30,7 +30,6 @@ class GreeterService extends GreeterServiceBase {
 }
 
 Future<void> main(List<String> args) async {
-  // await server.serve(port: 50051);
   Map<String, String> env = Platform.environment;
   final cpus = int.tryParse(env["GRPC_SERVER_CPUS"] ?? '1') ?? 1;
 
