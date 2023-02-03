@@ -1,4 +1,4 @@
-FROM crystallang/crystal:1.5.0
+FROM crystallang/crystal:1.7.2
 
 WORKDIR /app
 COPY crystal_grpc_bench /app
