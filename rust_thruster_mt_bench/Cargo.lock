@@ -355,7 +355,7 @@ dependencies = [
  "http 0.2.8",
  "indexmap",
  "slab",
- "tokio 1.23.1",
+ "tokio 1.24.2",
  "tokio-util 0.7.4",
  "tracing",
 ]
@@ -456,7 +456,7 @@ dependencies = [
  "itoa 1.0.3",
  "pin-project-lite 0.2.9",
  "socket2",
- "tokio 1.23.1",
+ "tokio 1.24.2",
  "tower-service",
  "tracing",
  "want",
@@ -1055,7 +1055,7 @@ dependencies = [
  "prost-build",
  "thruster",
  "thruster-grpc",
- "tokio 1.23.1",
+ "tokio 1.24.2",
 ]
 
 [[package]]
@@ -1235,7 +1235,7 @@ dependencies = [
  "templatify",
  "thruster-proc",
  "time",
- "tokio 1.23.1",
+ "tokio 1.24.2",
  "tokio-stream",
  "tokio-util 0.6.10",
 ]
@@ -1311,9 +1311,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.23.1"
+version = "1.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38a54aca0c15d014013256222ba0ebed095673f89345dd79119d912eb561b7a8"
+checksum = "597a12a59981d9e3c38d216785b0c37399f6e415e8d0712047620f189371b0bb"
 dependencies = [
  "autocfg 1.1.0",
  "bytes 1.2.1",
@@ -1359,7 +1359,7 @@ checksum = "df54d54117d6fdc4e4fea40fe1e4e566b3505700e148a6827e59b34b0d2600d9"
 dependencies = [
  "futures-core",
  "pin-project-lite 0.2.9",
- "tokio 1.23.1",
+ "tokio 1.24.2",
 ]
 
 [[package]]
@@ -1375,7 +1375,7 @@ dependencies = [
  "log",
  "pin-project-lite 0.2.9",
  "slab",
- "tokio 1.23.1",
+ "tokio 1.24.2",
 ]
 
 [[package]]
@@ -1388,7 +1388,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "pin-project-lite 0.2.9",
- "tokio 1.23.1",
+ "tokio 1.24.2",
  "tracing",
 ]
 
