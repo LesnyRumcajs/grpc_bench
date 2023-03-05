@@ -17,6 +17,7 @@ export GRPC_CLIENT_QPS=$(( GRPC_CLIENT_QPS / GRPC_CLIENT_CONCURRENCY ))
 export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 export GRPC_IMAGE_NAME="${GRPC_IMAGE_NAME:-grpc_bench}"
+export GRPC_GHZ_TAG="${GRPC_GHZ_TAG:-0.114.0}"
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.
@@ -75,9 +76,11 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
     	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
     	    -v "${PWD}/payload:/payload:ro" \
     		--cpus $GRPC_CLIENT_CPUS \
-    	  obvionaoe/ghz:v0.103.0 \
+        ghcr.io/bojand/ghz:"${GRPC_GHZ_TAG}" \
     		--proto=/proto/helloworld/helloworld.proto \
     		--call=helloworld.Greeter.SayHello \
+            --disable-template-functions \
+            --disable-template-data \
             --insecure \
             --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
             --connections="${GRPC_CLIENT_CONNECTIONS}" \
@@ -101,9 +104,11 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 	docker run --name ghz --rm --network=host -v "${PWD}/proto:/proto:ro" \
 	    -v "${PWD}/payload:/payload:ro" \
 		--cpus $GRPC_CLIENT_CPUS \
-    obvionaoe/ghz:v0.103.0 \
+    ghcr.io/bojand/ghz:"${GRPC_GHZ_TAG}" \
 		--proto=/proto/helloworld/helloworld.proto \
 		--call=helloworld.Greeter.SayHello \
+        --disable-template-functions \
+        --disable-template-data \
         --insecure \
         --concurrency="${GRPC_CLIENT_CONCURRENCY}" \
         --connections="${GRPC_CLIENT_CONNECTIONS}" \
