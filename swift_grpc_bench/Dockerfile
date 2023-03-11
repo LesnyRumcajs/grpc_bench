@@ -1,4 +1,4 @@
-FROM swift:5.7.0 AS builder
+FROM swift:5.7.3 AS builder
 
 WORKDIR /app
 

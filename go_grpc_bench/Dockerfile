@@ -1,4 +1,4 @@
-FROM golang:1.19.3-buster
+FROM golang:1.20.2-buster
 
 WORKDIR /app
 COPY go_grpc_bench /app

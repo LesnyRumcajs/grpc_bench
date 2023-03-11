@@ -1,4 +1,4 @@
-FROM eclipse-temurin:19.0.1_10-jdk-focal
+FROM eclipse-temurin:19.0.2_7-jdk-focal
 
 WORKDIR /app
 COPY java_vertx_grpc_bench /app
