@@ -1,4 +1,4 @@
-FROM elixir:1.14.0
+FROM elixir:1.14.3
 
 WORKDIR /app
 COPY elixir_grpc_bench /app
