@@ -7,4 +7,4 @@ libraryDependencies ++= Seq(
   "com.thesamet.scalapb" %% "compilerplugin" % "0.11.13"
 )
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.0")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
