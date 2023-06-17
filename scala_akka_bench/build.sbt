@@ -2,12 +2,12 @@ name := "akka-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.11"
 
 run / fork := true
 
-val akkaVersion = "2.7.0"
-val akkaHttpVersion = "10.5.0"
+val akkaVersion = "2.8.2"
+val akkaHttpVersion = "10.5.2"
 
 enablePlugins(AkkaGrpcPlugin)
 

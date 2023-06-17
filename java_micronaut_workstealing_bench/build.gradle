@@ -12,7 +12,6 @@ repositories {
 }
 
 micronaut {
-    testRuntime("junit5")
     processing {
         incremental(true)
         annotations("com.example.*")
@@ -27,7 +26,6 @@ dependencies {
     implementation("io.grpc:grpc-stub:1.49.0")
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
-    testImplementation("io.micronaut:micronaut-http-client")
 }
 
 

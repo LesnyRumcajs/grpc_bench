@@ -61,17 +61,17 @@ java {
 }
 
 application {
-    mainClassName = "io.grpc.examples.helloworld.HelloWorldServerKt"
+    mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
 }
 
 tasks.register<JavaExec>("HelloWorldServer") {
     dependsOn("classes")
     classpath = sourceSets["main"].runtimeClasspath
-    main = "io.grpc.examples.helloworld.HelloWorldServerKt"
+    mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
 }
 
 val helloWorldServerStartScripts = tasks.register<CreateStartScripts>("helloWorldServerStartScripts") {
-    mainClassName = "io.grpc.examples.helloworld.HelloWorldServerKt"
+    mainClass.set("io.grpc.examples.helloworld.HelloWorldServerKt")
     applicationName = "hello-world-server"
     outputDir = tasks.named<CreateStartScripts>("startScripts").get().outputDir
     classpath = tasks.named<CreateStartScripts>("startScripts").get().classpath

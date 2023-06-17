@@ -1,4 +1,4 @@
-FROM eclipse-temurin:19.0.2_7-jdk-focal
+FROM eclipse-temurin:20.0.1_9-jdk-jammy
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench /app
