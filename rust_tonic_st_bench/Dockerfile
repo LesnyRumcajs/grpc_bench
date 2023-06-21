@@ -1,4 +1,4 @@
-FROM rust:1.68
+FROM rust:1.70
 
 WORKDIR /app
 COPY rust_tonic_st_bench /app

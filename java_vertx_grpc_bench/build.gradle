@@ -13,7 +13,7 @@ def protobufVersion = '3.21.6'
 def protocVersion = protobufVersion
 
 dependencies {
-    implementation 'io.vertx:vertx-grpc-server:4.3.4'
+    implementation 'io.vertx:vertx-grpc-server:4.4.3'
     implementation "io.grpc:grpc-protobuf:${grpcVersion}"
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"

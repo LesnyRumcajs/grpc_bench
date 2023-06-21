@@ -2,7 +2,7 @@ name := "zio-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.11"
 
 run / fork := true
 
