@@ -276,42 +276,6 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
-  elixir_grpc_bench:
-    runs-on: ubuntu-latest
-    needs:
-    - set-image-name
-    - changed
-    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'elixir_grpc_bench/')
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Build elixir_grpc_bench
-      run: ./build.sh elixir_grpc_bench
-      env:
-        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
-
-    - name: Benchmark elixir_grpc_bench
-      run: ./bench.sh elixir_grpc_bench
-      env:
-        GRPC_BENCHMARK_DURATION: 30s
-        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
-
-    - if: github.ref == 'refs/heads/master'
-      name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - if: github.ref == 'refs/heads/master'
-      name: If on master push image to GHCR
-      run: docker push $GRPC_IMAGE_NAME:elixir_grpc_bench-complex_proto
-      env:
-        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
-
-
   erlang_grpcbox_bench:
     runs-on: ubuntu-latest
     needs:
