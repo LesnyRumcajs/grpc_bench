@@ -7,7 +7,7 @@ use std::{io, thread};
 use futures::channel::oneshot;
 use futures::executor::block_on;
 use futures::prelude::*;
-use grpcio::{ChannelBuilder, Environment, RpcContext, ServerBuilder, UnarySink};
+use grpcio::{ChannelBuilder, Environment, RpcContext, ServerBuilder, ServerCredentials, UnarySink};
 
 use crate::proto::gen::helloworld::{HelloReply, HelloRequest};
 use crate::proto::gen::helloworld_grpc::{create_greeter, Greeter};
@@ -39,16 +39,18 @@ fn main() {
     let service = create_greeter(GreeterService);
     let ch_builder = ChannelBuilder::new(env.clone());
 
+    let addr = "0.0.0.0:50051";
     let mut server = ServerBuilder::new(env)
         .register_service(service)
-        .bind("0.0.0.0", 50_051)
         .channel_args(ch_builder.build_args())
         .build()
         .unwrap();
+    server
+        .add_listening_port(addr, ServerCredentials::insecure())
+        .unwrap();
+
     server.start();
-    for (host, port) in server.bind_addrs() {
-        println!("listening on {}:{} ({} cpus)", host, port, cpus);
-    }
+    println!("listening on {addr} ({cpus} cpus)");
     let (tx, rx) = oneshot::channel();
     thread::spawn(move || {
         println!("Press ENTER to exit...");
