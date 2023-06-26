@@ -1,11 +1,8 @@
 use gmf::server::gmf_server::GmfServer;
-use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-use glommio::Placement;
-use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
-use log::{error, info};
+use hello_world::greeter_server::{Greeter, GreeterServer};
 use tower::Service;
 
 #[global_allocator]
@@ -31,7 +28,7 @@ impl Greeter for MyGreeter {
     }
 }
 
-#[cfg(target_os = "linux")]
+// #[cfg(target_os = "linux")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse().unwrap();
     let greeter = MyGreeter::default();
@@ -45,19 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
         // Maximum number of concurrent connections.
         10240,
-        // Specifies a policy by which Executor selects CPUs.
-        Placement::Fixed(0),
     );
-
-    let sender = Arc::clone(&gmf.signal_tx);
-
-    ctrlc_async::set_async_handler(async move {
-        info!("Received Ctrl-C, shutting down");
-        sender.try_send(()).unwrap_or_else(|_| {
-            error!("Failed to send termination signal.");
-        });
-    })
-    .expect("Error setting Ctrl-C handler");
 
     // Run the gRPC server on the provided address
     gmf.serve(addr).unwrap_or_else(|e| panic!("failed {e}"));
