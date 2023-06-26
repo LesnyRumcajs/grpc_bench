@@ -2,13 +2,12 @@ use dotenv::dotenv;
 use log::info;
 use std::env;
 use thruster::{
-    async_middleware, context::hyper_request::HyperRequest, middleware_fn, App, MiddlewareNext,
-    MiddlewareResult, ThrusterServer,
+    context::hyper_request::HyperRequest, m, middleware_fn, App, MiddlewareNext, MiddlewareResult,
+    ThrusterServer,
 };
 use thruster_grpc::{
-    context::{generate_context, ProtoContext as Ctx},
+    context::{generate_context, ProtoContext, ProtoContextExt},
     server::ProtoServer,
-    util::{context_to_message, message_to_context},
 };
 
 #[global_allocator]
@@ -18,19 +17,22 @@ mod hello_world {
     include!(concat!(env!("OUT_DIR"), "/helloworld.rs"));
 }
 
+type Ctx = ProtoContext<()>;
+
 #[middleware_fn]
 pub async fn say_hello(mut context: Ctx, _next: MiddlewareNext<Ctx>) -> MiddlewareResult<Ctx> {
-    let hello_world_request = context_to_message::<hello_world::HelloRequest>(&mut context)
+    let hello_world_request = context
+        .get_proto::<hello_world::HelloRequest>()
         .await
         .unwrap();
 
-    Ok(message_to_context(
-        context,
-        hello_world::HelloReply {
+    context
+        .proto(hello_world::HelloReply {
             response: hello_world_request.request,
-        },
-    )
-    .await)
+        })
+        .await;
+
+    Ok(context)
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -44,10 +46,8 @@ async fn main() {
 
     info!("Starting server at {}:{}!", host, port);
 
-    let app = App::<HyperRequest, Ctx, ()>::create(generate_context, ()).post(
-        "/helloworld.Greeter/SayHello",
-        async_middleware!(Ctx, [say_hello]),
-    );
+    let app = App::<HyperRequest, Ctx, ()>::create(generate_context, ())
+        .post("/helloworld.Greeter/SayHello", m![say_hello]);
 
     ProtoServer::new(app)
         .build(&host, port.parse::<u16>().unwrap())
