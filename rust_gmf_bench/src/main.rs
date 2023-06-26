@@ -1,12 +1,9 @@
 use gmf::server::gmf_server::GmfServer;
 use tonic::{Request, Response, Status};
 
-use hello_world::{HelloReply, HelloRequest};
 use hello_world::greeter_server::{Greeter, GreeterServer};
+use hello_world::{HelloReply, HelloRequest};
 use tower::Service;
-
-#[global_allocator]
-static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 pub mod hello_world {
     tonic::include_proto!("helloworld");
