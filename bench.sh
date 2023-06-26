@@ -18,6 +18,7 @@ export GRPC_CLIENT_CPUS=${GRPC_CLIENT_CPUS:-"1"}
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 export GRPC_IMAGE_NAME="${GRPC_IMAGE_NAME:-grpc_bench}"
 export GRPC_GHZ_TAG="${GRPC_GHZ_TAG:-0.114.0}"
+export GRPC_MEMLOCK_ULIMIT=${GRPC_MEMLOCK_ULIMIT:-"-1:-1"}
 
 # Let containers know how many CPUs they will be running on
 # Additionally export other vars for further analysis script.
@@ -56,6 +57,7 @@ for benchmark in ${BENCHMARKS_TO_RUN}; do
 		--rm \
 		--cpus "${GRPC_SERVER_CPUS}" \
 		--memory "${GRPC_SERVER_RAM}" \
+		--ulimit memlock="${GRPC_MEMLOCK_ULIMIT}" \
 		-e GRPC_SERVER_CPUS \
 		-e GRPC_SERVER_RAM \
 		-p 50051:50051 \

@@ -5,6 +5,8 @@ use tonic::{Request, Response, Status};
 use glommio::Placement;
 use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
+use log::{error, info};
+use tower::Service;
 
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
@@ -30,8 +32,7 @@ impl Greeter for MyGreeter {
 }
 
 #[cfg(target_os = "linux")]
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse().unwrap();
     let greeter = MyGreeter::default();
 
@@ -42,6 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut tonic = tonic.clone();
             tonic.call(req)
         }),
+        // Maximum number of concurrent connections.
         10240,
         // Specifies a policy by which Executor selects CPUs.
         Placement::Fixed(0),
@@ -58,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .expect("Error setting Ctrl-C handler");
 
     // Run the gRPC server on the provided address
-    gmf.serve(addr).unwrap_or_else(|e| panic!("failed {}", e));
+    gmf.serve(addr).unwrap_or_else(|e| panic!("failed {e}"));
 
     Ok(())
 }

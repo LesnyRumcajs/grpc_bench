@@ -1,9 +1,7 @@
-FROM ghcr.io/rust-lang/rust:nightly-bookworm
-
-# FROM rust:1.70
+FROM rust:1.70
 
 WORKDIR /app
-COPY rust_tonic_st_bench /app
+COPY rust_gmf_bench /app
 COPY proto /app/proto
 
 RUN apt-get update && apt-get install -y cmake protobuf-compiler-grpc
