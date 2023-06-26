@@ -44,8 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
         10240,
         // Specifies a policy by which Executor selects CPUs.
-        Placement::Unbound,
-        //Placement::Fixed(0),
+        Placement::Fixed(0),
     );
 
     let sender = Arc::clone(&gmf.signal_tx);
