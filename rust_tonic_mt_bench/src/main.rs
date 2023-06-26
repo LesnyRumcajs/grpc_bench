@@ -3,10 +3,6 @@ use tonic::{transport::Server, Request, Response, Status};
 use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
 
-#[global_allocator]
-static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
-
-
 pub mod hello_world {
     tonic::include_proto!("helloworld");
 }

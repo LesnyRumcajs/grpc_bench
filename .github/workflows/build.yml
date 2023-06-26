@@ -1248,6 +1248,150 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
+  rust_tonic_mt_jemalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_mt_jemalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_mt_jemalloc_bench
+      run: ./build.sh rust_tonic_mt_jemalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_mt_jemalloc_bench
+      run: ./bench.sh rust_tonic_mt_jemalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_jemalloc_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_mt_mimalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_mt_mimalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_mt_mimalloc_bench
+      run: ./build.sh rust_tonic_mt_mimalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_mt_mimalloc_bench
+      run: ./bench.sh rust_tonic_mt_mimalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_mimalloc_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_mt_musl_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_mt_musl_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_mt_musl_bench
+      run: ./build.sh rust_tonic_mt_musl_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_mt_musl_bench
+      run: ./bench.sh rust_tonic_mt_musl_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_musl_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_mt_tcmalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_mt_tcmalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_mt_tcmalloc_bench
+      run: ./build.sh rust_tonic_mt_tcmalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_mt_tcmalloc_bench
+      run: ./bench.sh rust_tonic_mt_tcmalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_mt_tcmalloc_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
   rust_tonic_st_bench:
     runs-on: ubuntu-latest
     needs:
@@ -1280,6 +1424,150 @@ jobs:
     - if: github.ref == 'refs/heads/master'
       name: If on master push image to GHCR
       run: docker push $GRPC_IMAGE_NAME:rust_tonic_st_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_st_jemalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_st_jemalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_st_jemalloc_bench
+      run: ./build.sh rust_tonic_st_jemalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_st_jemalloc_bench
+      run: ./bench.sh rust_tonic_st_jemalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_st_jemalloc_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_st_mimalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_st_mimalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_st_mimalloc_bench
+      run: ./build.sh rust_tonic_st_mimalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_st_mimalloc_bench
+      run: ./bench.sh rust_tonic_st_mimalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_st_mimalloc_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_st_musl_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_st_musl_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_st_musl_bench
+      run: ./build.sh rust_tonic_st_musl_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_st_musl_bench
+      run: ./bench.sh rust_tonic_st_musl_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_st_musl_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
+  rust_tonic_st_tcmalloc_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'rust_tonic_st_tcmalloc_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Build rust_tonic_st_tcmalloc_bench
+      run: ./build.sh rust_tonic_st_tcmalloc_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark rust_tonic_st_tcmalloc_bench
+      run: ./bench.sh rust_tonic_st_tcmalloc_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:rust_tonic_st_tcmalloc_bench-complex_proto
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
