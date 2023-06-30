@@ -37,7 +37,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let mut tonic = tonic.clone();
             tonic.call(req)
         }),
-        // Maximum number of concurrent connections.
+        // The maximum number of concurrent connections per each physical core.
+        //
+        // This number is not a hard requirement, but more of an initial estimate.
+        // The actual maximum may need to be tuned based on your server's
+        // resource availability and expected load. The choice of `10240` here
+        // was largely arbitrary, chosen based on basic benchmarks to keep the
+        // memory usage below 512MB.
         10240,
     );
 
