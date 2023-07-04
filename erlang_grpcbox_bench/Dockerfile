@@ -1,7 +1,5 @@
-FROM docker.io/library/erlang:24.2.0.0@sha256:e4269291a69148b5f9b064c209dfd73ec9f805a09f91fec103282aa4d9899a34 AS erlang
-FROM docker.io/library/erlang:24.2.0.0-slim@sha256:35030c81e286c332efe2240de4899a9d25cef629f379aeb2ec83b5b27da8d0f6 AS erlang-slim
+FROM docker.io/library/erlang:26.0.1@sha256:c42d00aff6fae5206b47a8868698fe1edfdc8e08d3bfa35c786833e8f72ba638 as builder
 
-FROM erlang as builder
 WORKDIR /app
 COPY erlang_grpcbox_bench /app
 COPY proto /app/proto
@@ -11,7 +9,7 @@ RUN mkdir -p /opt/rel
 RUN tar -zxf _build/prod/rel/*/*.tar.gz -C /opt/rel
 
 
-FROM erlang-slim AS release
+FROM debian:bullseye AS release
 WORKDIR /app
 COPY --from=builder /opt/rel .
 EXPOSE 50051
