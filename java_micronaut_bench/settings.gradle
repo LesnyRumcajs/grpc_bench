@@ -1,0 +1,10 @@
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        create("mn") {
+            from("io.micronaut.platform:micronaut-platform:4.0.0")
+        }
+    }
+}
