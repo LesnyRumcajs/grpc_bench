@@ -1,13 +1,17 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
-    id("io.micronaut.application") version "3.5.3"
+    id("io.micronaut.application") version "4.0.0"
     id("com.google.protobuf") version "0.8.15"
+    id 'idea'
 }
 
 version = "0.1"
 group = "com.example"
 
 repositories {
+    maven { url "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+      mavenContent { snapshotsOnly() }
+    }
     mavenCentral()
 }
 
@@ -19,13 +23,17 @@ micronaut {
 }
 
 dependencies {
-    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut:micronaut-context")
+    implementation 'javax.inject:javax.inject:1'
     implementation("io.micronaut.grpc:micronaut-grpc-runtime")
+    implementation("io.micronaut.grpc:micronaut-grpc-server-runtime")
+    implementation("io.micronaut.discovery:micronaut-discovery-client")
     implementation("javax.annotation:javax.annotation-api")
-    implementation("io.grpc:grpc-protobuf:1.49.0")
-    implementation("io.grpc:grpc-stub:1.49.0")
+    implementation("io.grpc:grpc-protobuf:1.56.1")
+    implementation("io.grpc:grpc-stub:1.56.1")
+    // implementation("io.micronaut.platform:micronaut-platform:4.0.0")
+    implementation 'io.micronaut:micronaut-inject'
     runtimeOnly("ch.qos.logback:logback-classic")
-    implementation("io.micronaut:micronaut-validation")
 }
 
 
@@ -34,8 +42,8 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
-    targetCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
 }
 
 sourceSets {
@@ -48,9 +56,9 @@ sourceSets {
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:3.21.5" }
+    protoc { artifact = "com.google.protobuf:protoc:3.23.4" }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.49.0" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.56.1" }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }
