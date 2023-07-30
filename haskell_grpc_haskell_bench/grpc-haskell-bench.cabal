@@ -1,0 +1,25 @@
+cabal-version: 2.4
+name:          grpc-haskell-bench
+version:       0.1.0.0
+
+executable haskell-grpc-haskell-bench
+  main-is:          Main.hs
+  hs-source-dirs:   app src-gen
+  other-modules:    Helloworld
+  build-depends:
+    , base               >=4.14 && <5
+    , bytestring
+    , containers
+    , deepseq
+    , grpc-haskell
+    , grpc-haskell-core
+    , proto3-suite       ^>=0.6
+    , proto3-wire        ^>=1.4
+    , text
+    , vector
+
+  default-language: Haskell2010
+  ghc-options:
+    -O2 -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints
+    -threaded -rtsopts
