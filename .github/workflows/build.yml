@@ -1392,6 +1392,42 @@ jobs:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
 
+  scala_pekko_bench:
+    runs-on: ubuntu-latest
+    needs:
+    - set-image-name
+    - changed
+    if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'scala_pekko_bench/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Build scala_pekko_bench
+      run: ./build.sh scala_pekko_bench
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - name: Benchmark scala_pekko_bench
+      run: ./bench.sh scala_pekko_bench
+      env:
+        GRPC_BENCHMARK_DURATION: 30s
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - if: github.ref == 'refs/heads/master'
+      name: If on master push image to GHCR
+      run: docker push $GRPC_IMAGE_NAME:scala_pekko_bench-complex_proto
+      env:
+        GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
+
+
   scala_zio_bench:
     runs-on: ubuntu-latest
     needs:
