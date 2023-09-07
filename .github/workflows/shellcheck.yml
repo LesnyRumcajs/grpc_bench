@@ -11,10 +11,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Skip some files
-      run: |
-        rm scala_akka_bench/sbt-dist/bin/sbt-launch-lib.bash
-
     - name: Run shellcheck
       uses: ludeeus/action-shellcheck@2.0.0
       with:
