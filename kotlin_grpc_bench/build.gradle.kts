@@ -5,7 +5,7 @@ import com.google.protobuf.gradle.plugins
 import com.google.protobuf.gradle.protobuf
 import com.google.protobuf.gradle.protoc
 
-val grpcVersion = "1.49.0"
+val grpcVersion = "1.58.0"
 val grpcKotlinVersion = "1.3.0"
 val protobufVersion = "3.21.5"
 val coroutinesVersion = "1.6.4"
