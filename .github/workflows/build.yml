@@ -239,7 +239,7 @@ jobs:
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
-
+        
   dart_grpc_bench:
     runs-on: ubuntu-latest
     needs:
@@ -248,7 +248,7 @@ jobs:
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, 'dart_grpc_bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Build dart_grpc_bench
       run: ./build.sh dart_grpc_bench
@@ -263,7 +263,7 @@ jobs:
 
     - if: github.ref == 'refs/heads/master'
       name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}

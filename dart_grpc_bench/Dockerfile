@@ -1,4 +1,4 @@
-FROM dart:3.0.5-sdk AS build
+FROM dart:stable AS build
 
 WORKDIR /app
 COPY dart_grpc_bench/pubspec.yaml /app/pubspec.yaml

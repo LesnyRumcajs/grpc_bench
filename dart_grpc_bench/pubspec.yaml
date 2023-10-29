@@ -1,7 +1,7 @@
 name: helloworld
 
 environment:
-  sdk: ^3.0.5
+  sdk: ^3.1.0
 
 dependencies:
   async: ^2.11.0
