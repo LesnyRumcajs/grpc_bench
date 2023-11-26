@@ -1,4 +1,4 @@
-FROM eclipse-temurin:20.0.1_9-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
 COPY java_micronaut_bench /app

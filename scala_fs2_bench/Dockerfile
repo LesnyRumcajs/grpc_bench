@@ -6,7 +6,7 @@ COPY proto/helloworld/helloworld.proto /app/src/main/protobuf/helloworld.proto
 
 RUN sbt assembly
 
-FROM eclipse-temurin:20.0.1_9-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 ENV GC "-XX:+UseParallelGC"
 ENV _JAVA_OPTIONS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
