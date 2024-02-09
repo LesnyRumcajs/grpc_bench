@@ -239,7 +239,6 @@ jobs:
       env:
         GRPC_IMAGE_NAME: ${{ needs.set-image-name.outputs.name }}
 
-        
   dart_grpc_bench:
     runs-on: ubuntu-latest
     needs:
