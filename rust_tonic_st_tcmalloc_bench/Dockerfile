@@ -6,5 +6,7 @@ COPY proto /app/proto
 
 RUN apt-get update && apt-get install -y protobuf-compiler-grpc
 RUN cargo build --release --locked
+RUN apt-get install -y libtcmalloc-minimal4=2.10-1
+ENV LD_PRELOAD="libtcmalloc_minimal.so.4"
 
 ENTRYPOINT ["/app/target/release/helloworld-server"]

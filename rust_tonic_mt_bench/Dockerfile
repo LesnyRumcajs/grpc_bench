@@ -4,8 +4,7 @@ WORKDIR /app
 COPY rust_tonic_mt_bench /app
 COPY proto /app/proto
 
-RUN apt-get update && apt-get install -y cmake protobuf-compiler-grpc
-RUN rustup component add rustfmt
+RUN apt-get update && apt-get install -y protobuf-compiler-grpc
 RUN cargo build --release --locked
 
 ENTRYPOINT ["/app/target/release/helloworld-server"]
