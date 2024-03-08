@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Getting protoc-gen-swift and protoc-gen-grpc-swift
 RUN apt update && apt install -y protobuf-compiler git make
-RUN git clone --depth 1 https://github.com/grpc/grpc-swift
+RUN git clone --depth 1 --single-branch --branch 1.21.0 https://github.com/grpc/grpc-swift
 WORKDIR /app/grpc-swift
 RUN make plugins
 RUN cp /app/grpc-swift/protoc-* /usr/local/bin
