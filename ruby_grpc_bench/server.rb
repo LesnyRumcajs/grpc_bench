@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Copyright 2015 gRPC authors.
 #
@@ -18,7 +18,7 @@
 #
 # Usage: $ path/to/greeter_server.rb
 
-this_dir = File.expand_path(File.dirname(__FILE__))
+this_dir = File.expand_path(__dir__)
 lib_dir = File.join(this_dir, 'lib')
 $LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
 

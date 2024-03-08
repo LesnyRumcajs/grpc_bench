@@ -13,30 +13,25 @@ end
 
 results = Hash.new { |hash, key| hash[key] = {} }
 Dir.glob("#{report_directory}/*.report").each do |file|
-  begin
-    name = File.basename(file).split(/_bench.report/).first
-    results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
-    results[name][:ok_responses] = begin
-                                     File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
-                                   rescue StandardError
-                                     0
-                                   end
-    results[name][:avg_resp_time] = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
-    results[name][:_90pct] = File.read(file).scan(/\s*90 % in \s*(.*\w)/)[0][0]
-    results[name][:_95pct] = File.read(file).scan(/\s*95 % in \s*(.*\w)/)[0][0]
-    results[name][:_99pct] = File.read(file).scan(/\s*99 % in \s*(.*\w)/)[0][0]
-    results[name][:req_per_s] = results[name][:ok_responses] / results[name][:total_time]
+  name = File.basename(file).split(/_bench.report/).first
+  results[name][:total_time] = File.read(file).scan(/Total:\s*((?:\d|\.)+)/)[0][0].to_f
+  results[name][:ok_responses] = begin
+    File.read(file).scan(/\[OK\]\s*(\d+)/)[0][0].to_f
   rescue StandardError
-    puts "Failed miserably analysing #{name}."
-    raise
+    0
   end
+  results[name][:avg_resp_time] = File.read(file).scan(/\s*Average:\s*(.*\w)/)[0][0]
+  results[name][:_90pct] = File.read(file).scan(/\s*90 % in \s*(.*\w)/)[0][0]
+  results[name][:_95pct] = File.read(file).scan(/\s*95 % in \s*(.*\w)/)[0][0]
+  results[name][:_99pct] = File.read(file).scan(/\s*99 % in \s*(.*\w)/)[0][0]
+  results[name][:req_per_s] = results[name][:ok_responses] / results[name][:total_time]
 end
 
 Dir.glob("#{report_directory}/*.stats").each do |file|
   name = File.basename(file).split(/_bench.stats/).first
   stats = File
           .read(file)
-          .scan(/([0-9\.]+)%\s+([0-9\.]+)(\w+)/)[0..-2] # ignore the last sample, not very reliable
+          .scan(/([0-9.]+)%\s+([0-9.]+)(\w+)/)[0..-2] # ignore the last sample, not very reliable
           .map { |cpu, memory, mem_unit| [cpu.to_f, memory.to_f * (mem_unit == 'GiB' ? 1024 : 1)] }
           .reject { |cpu, _mem| cpu < 1 }
           .transpose
@@ -74,7 +69,7 @@ results.sort_by { |_k, v| v[:req_per_s] }.reverse_each do |name, result|
                  result[:_90pct],
                  result[:_95pct],
                  result[:_99pct],
-                 result[:avg_cpu].round(2).to_s + '%',
-                 result[:avg_mem].round(2).to_s + ' ' + result[:avg_mem_unit]]
+                 "#{result[:avg_cpu].round(2)}%",
+                 "#{result[:avg_mem].round(2)} #{result[:avg_mem_unit]}"]
 end
 make_horizontal_line[]
