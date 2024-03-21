@@ -18,11 +18,12 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:grpc/grpc.dart';
+import 'package:http2/http2.dart';
 
-import 'package:helloworld/src/generated/helloworld.pb.dart';
 import 'package:helloworld/src/generated/helloworld.pbgrpc.dart';
 
 class GreeterService extends GreeterServiceBase {
+
   @override
   Future<HelloReply> sayHello(ServiceCall call, HelloRequest request) async {
     return HelloReply()..response = request.request;
@@ -35,7 +36,7 @@ Future<void> main(List<String> args) async {
 
   if (cpus > 1) {
     for (var serve = 0; serve < cpus; serve++) {
-      Isolate.spawn(_startServer, []);
+      Isolate.spawn(_startServer, [cpus]);
     }
   }
   // Bind one server in current Isolate
@@ -46,7 +47,12 @@ Future<void> main(List<String> args) async {
 }
 
 void _startServer([List? args]) async {
-  final server = Server([GreeterService()]);
+  final server = Server.create(
+    services: [GreeterService()],
+  );
   await server.serve(
-      address: InternetAddress.anyIPv4, port: 50051, shared: true);
+      port: 50051,
+       shared: true, 
+       http2ServerSettings: ServerSettings(concurrentStreamLimit: args?[0])
+    );
 }
