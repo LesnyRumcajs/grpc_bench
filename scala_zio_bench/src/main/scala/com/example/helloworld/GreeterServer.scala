@@ -1,8 +1,7 @@
 package com.example.helloworld
 
-import io.grpc.ServerBuilder
-import io.grpc.protobuf.services.ProtoReflectionService
-import scalapb.zio_grpc.{ServerMain, ServiceList}
+import scalapb.zio_grpc.{Server, ServerLayer, ServerMain, ServiceList}
+import zio.ZLayer
 
 import java.util.concurrent.Executors
 
@@ -12,10 +11,8 @@ object GreeterServer extends ServerMain {
   // Default port is 9000
   override def port = 50051
 
-  override def builder = {
-    val sb = ServerBuilder
-      .forPort(port)
-      .addService(ProtoReflectionService.newInstance())
+  override def serverLive: ZLayer[Any, Throwable, Server] = {
+    val sb = builder
 
     /**
      * Allow customization of the Executor with two environment variables:
@@ -42,6 +39,7 @@ object GreeterServer extends ServerMain {
       case "workStealing" => sb.executor(Executors.newWorkStealingPool(i_threads))
       case "cached" => sb.executor(Executors.newCachedThreadPool)
     }
-    sb
+
+    ServerLayer.fromServiceList(sb, services)
   }
 }
