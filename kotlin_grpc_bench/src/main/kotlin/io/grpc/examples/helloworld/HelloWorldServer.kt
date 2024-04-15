@@ -28,7 +28,7 @@ class HelloWorldServer(val port: Int) {
     val server: Server
 
     init {
-        val threads = System.getenv("JVM_EXECUTOR_THREADS")
+        val threads = System.getenv("GRPC_SERVER_CPUS")
         var i_threads = Runtime.getRuntime().availableProcessors()
         if (threads != null && !threads.isEmpty()) {
           i_threads = Integer.parseInt(threads)
