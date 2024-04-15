@@ -23,7 +23,7 @@ object GreeterServer extends IOApp {
        * <p>
        * <ul>
        * <li>JVM_EXECUTOR_TYPE: direct, workStealing, single, fixed, cached</li>
-       * <li>JVM_EXECUTOR_THREADS: integer value.</li>
+       * <li>GRPC_SERVER_CPUS: integer value.</li>
        * </ul>
        * </p>
        *
@@ -31,7 +31,7 @@ object GreeterServer extends IOApp {
        * availableProcessors(). Only the workStealing and fixed executors will use
        * this value.
        */
-      val threads = System.getenv("JVM_EXECUTOR_THREADS")
+      val threads = System.getenv("GRPC_SERVER_CPUS")
       var i_threads = Runtime.getRuntime.availableProcessors
       if (threads != null && !threads.isEmpty) i_threads = threads.toInt
       val value = System.getenv.getOrDefault("JVM_EXECUTOR_TYPE", "workStealing")
