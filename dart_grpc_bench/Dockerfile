@@ -2,12 +2,12 @@ FROM dart:3.3.4 AS build
 
 # Resolve app dependencies.
 WORKDIR /app
-COPY pubspec.* ./
-COPY proto ./proto
+COPY dart_grpc_bench/pubspec.yaml /app/pubspec.yaml
+COPY proto /app/proto
 RUN dart pub get
 
 # Copy app source code
-COPY . .
+COPY dart_grpc_bench /app
 
 # Ensure packages are still up-to-date if anything has changed
 RUN dart pub get --offline
