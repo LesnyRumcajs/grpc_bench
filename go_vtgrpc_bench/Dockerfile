@@ -1,4 +1,4 @@
-FROM golang:1.20.2-buster
+FROM golang:1.22.2-bookworm
 
 WORKDIR /app
 COPY go_vtgrpc_bench /app
