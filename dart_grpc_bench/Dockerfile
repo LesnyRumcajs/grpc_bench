@@ -1,18 +1,26 @@
 FROM dart:3.3.4 AS build
 
+# Resolve app dependencies.
 WORKDIR /app
-COPY dart_grpc_bench/pubspec.yaml /app/pubspec.yaml
-COPY proto /app/proto
-
+COPY pubspec.* ./
+COPY proto ./proto
 RUN dart pub get
-COPY dart_grpc_bench /app
+
+# Copy app source code
+COPY . .
+
 # Ensure packages are still up-to-date if anything has changed
 RUN dart pub get --offline
+
+# Setup protobuf compiler
 RUN apt update && apt install -y protobuf-compiler
 RUN dart pub global activate protoc_plugin
+
+# Generate protobuf files
 RUN mkdir -p lib/src/generated
 RUN protoc --plugin=protoc-gen-dart=$HOME/.pub-cache/bin/protoc-gen-dart --proto_path=/app/proto/helloworld --dart_out=grpc:lib/src/generated -Iproto /app/proto/helloworld/helloworld.proto
 
+# AOT compile the binary
 RUN dart compile exe bin/server.dart -o bin/server
 
 # ENTRYPOINT [ "/usr/bin/dart", "/app/bin/server.dart" ]
