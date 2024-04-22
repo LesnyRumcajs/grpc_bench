@@ -110,4 +110,4 @@ while read -r bench; do
 
 EOF
 
-done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
+done < <(find . -maxdepth 1 -type d -name '*_bench' | sort --version-sort)
