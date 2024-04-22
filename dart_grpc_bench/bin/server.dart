@@ -18,8 +18,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:grpc/grpc.dart';
-
-import 'package:helloworld/src/generated/helloworld.pb.dart';
 import 'package:helloworld/src/generated/helloworld.pbgrpc.dart';
 
 class GreeterService extends GreeterServiceBase {
@@ -46,7 +44,7 @@ Future<void> main(List<String> args) async {
 }
 
 void _startServer([List? args]) async {
-  final server = Server([GreeterService()]);
+  final server = Server.create(services: [GreeterService()]);
   await server.serve(
       address: InternetAddress.anyIPv4, port: 50051, shared: true);
 }

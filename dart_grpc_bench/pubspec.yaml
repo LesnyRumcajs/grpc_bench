@@ -1,9 +1,9 @@
 name: helloworld
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: ^3.3.4
 
 dependencies:
   async: ^2.10.0
-  grpc: ^3.1.0
-  protobuf: ^2.1.0
+  grpc: ^3.2.4
+  protobuf: ^3.1.0
