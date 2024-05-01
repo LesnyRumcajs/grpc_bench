@@ -1,4 +1,4 @@
-scala_fs2_bench/DockerfileFROM sbtscala/scala-sbt:eclipse-temurin-jammy-22_36_1.9.9_3.4.1 as BUILDER
+FROM sbtscala/scala-sbt:eclipse-temurin-jammy-22_36_1.9.9_3.4.1 as BUILDER
 
 WORKDIR /app
 COPY scala_fs2_bench /app
