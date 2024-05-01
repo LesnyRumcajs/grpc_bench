@@ -1,8 +1,8 @@
 package io.grpc.examples.helloworld
 
 import cats.effect.IO
-import io.grpc.examples.helloworld.helloworld.GreeterGrpc.Greeter
-import io.grpc.examples.helloworld.helloworld.{GreeterFs2Grpc, HelloReply, HelloRequest}
+import io.grpc.examples.helloworld.GreeterGrpc.Greeter
+import io.grpc.examples.helloworld.{GreeterFs2Grpc, HelloReply, HelloRequest}
 
 import scala.concurrent.Future
 

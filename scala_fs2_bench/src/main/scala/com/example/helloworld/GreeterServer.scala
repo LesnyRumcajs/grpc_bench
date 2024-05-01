@@ -2,7 +2,7 @@ package io.grpc.examples.helloworld
 
 import cats.effect._
 import fs2.grpc.syntax.all._
-import io.grpc.examples.helloworld.helloworld.GreeterFs2Grpc
+import io.grpc.examples.helloworld.GreeterFs2Grpc
 import io.grpc.{ServerBuilder, ServerServiceDefinition}
 
 import java.util.concurrent.Executors
