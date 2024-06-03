@@ -48,7 +48,7 @@ jobs:
 
     - name: Get changed files
       id: finder
-      uses: tj-actions/changed-files@v26.1
+      uses: tj-actions/changed-files@v44
 
     - name: Output whether base changed
       id: base
@@ -110,4 +110,4 @@ while read -r bench; do
 
 EOF
 
-done < <(find . -maxdepth 1 -type d -name '*_bench' | sort)
+done < <(find . -maxdepth 1 -type d -name '*_bench' | sort --version-sort)

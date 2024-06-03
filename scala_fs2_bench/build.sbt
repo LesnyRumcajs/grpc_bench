@@ -2,7 +2,7 @@ name := "fs2-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.13"
 
 run / fork := true
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
+	"go.akshayshah.org/connectproto"
 	_ "go.uber.org/automaxprocs"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -30,7 +31,7 @@ func (s *server) SayHello(ctx context.Context, in *connect.Request[helloworld.He
 
 func main() {
 	mux := http.NewServeMux()
-	mux.Handle(helloworldconnect.NewGreeterHandler(&server{}))
+	mux.Handle(helloworldconnect.NewGreeterHandler(&server{}, connectproto.WithBinaryVT()))
 	err := http.ListenAndServe(
 		port,
 		h2c.NewHandler(mux, &http2.Server{}),

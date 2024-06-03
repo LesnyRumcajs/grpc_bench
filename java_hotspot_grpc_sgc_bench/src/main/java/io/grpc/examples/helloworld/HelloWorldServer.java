@@ -57,7 +57,7 @@ public class HelloWorldServer {
    * <p>
    * <ul>
    * <li>JVM_EXECUTOR_TYPE: direct, workStealing, single, fixed, cached</li>
-   * <li>JVM_EXECUTOR_THREADS: integer value.</li>
+   * <li>GRPC_SERVER_CPUS: integer value.</li>
    * </ul>
    * </p>
    *
@@ -66,7 +66,7 @@ public class HelloWorldServer {
    * this value.
    */
   private ServerBuilder<?> configureExecutor(ServerBuilder<?> sb) {
-    var threads = System.getenv("JVM_EXECUTOR_THREADS");
+    var threads = System.getenv("GRPC_SERVER_CPUS");
     var i_threads = Runtime.getRuntime().availableProcessors();
     if (threads != null && !threads.isEmpty()) {
       i_threads = Integer.parseInt(threads);
