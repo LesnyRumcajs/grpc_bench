@@ -2,7 +2,7 @@ name := "akka-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.13"
+scalaVersion := "3.4.1"
 
 run / fork := true
 
