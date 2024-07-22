@@ -5,7 +5,7 @@ BENCHMARKS_TO_RUN="${@}"
 ##  ...or use all the *_bench dirs by default
 BENCHMARKS_TO_RUN="${BENCHMARKS_TO_RUN:-$(find . -maxdepth 1 -name '*_bench' -type d | sort)}"
 
-RESULTS_DIR="results/$(date '+%y%d%mT%H%M%S')"
+RESULTS_DIR="results/$(date '+%y%m%dT%H%M%S')"
 export GRPC_BENCHMARK_DURATION=${GRPC_BENCHMARK_DURATION:-"20s"}
 export GRPC_BENCHMARK_WARMUP=${GRPC_BENCHMARK_WARMUP:-"5s"}
 export GRPC_SERVER_CPUS=${GRPC_SERVER_CPUS:-"1"}
