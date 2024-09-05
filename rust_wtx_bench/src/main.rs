@@ -9,13 +9,22 @@ use wtx::{
     },
 };
 
-#[tokio::main]
-async fn main() -> wtx::Result<()> {
-    let router = Router::paths(wtx::paths!((
-        "/helloworld.Greeter/SayHello",
-        post(say_hello)
-    ),));
-    Server::new(router).listen("0.0.0.0:50051", |_| {}).await
+fn main() -> wtx::Result<()> {
+    let cpus = std::env::var("GRPC_SERVER_CPUS")
+        .ok()
+        .and_then(|var| var.parse().ok())
+        .unwrap_or(1);
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(cpus)
+        .enable_all()
+        .build()?
+        .block_on(async move {
+            let router = Router::paths(wtx::paths!((
+                "/helloworld.Greeter/SayHello",
+                post(say_hello)
+            ),));
+            Server::new(router).listen("0.0.0.0:50051", |_| {}).await
+        })
 }
 
 async fn say_hello(
