@@ -1,0 +1,28 @@
+[[bin]]
+name = "helloworld-server"
+path = "src/main.rs"
+
+[dependencies]
+quick-protobuf = { default-features = false, version = "0.8" }
+tokio = { default-features = false, features = ["parking_lot", "rt-multi-thread"], version = "1.0" }
+wtx = { default-features = false, features = ["grpc", "optimization", "quick-protobuf"], version = "0.17" }
+
+[build-dependencies]
+pb-rs = { default-features = false, version = "0.10" }
+
+[package]
+edition = "2021"
+name = "wtx"
+version = "0.0.0"
+
+[profile.release]
+codegen-units = 1
+debug = false
+debug-assertions = false
+incremental = false
+lto = true
+opt-level = 3
+overflow-checks = false
+panic = 'abort'
+rpath = false
+strip = "symbols"
