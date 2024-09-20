@@ -5,7 +5,7 @@ path = "src/main.rs"
 [dependencies]
 quick-protobuf = { default-features = false, version = "0.8" }
 tokio = { default-features = false, features = ["parking_lot", "rt-multi-thread"], version = "1.0" }
-wtx = { default-features = false, features = ["grpc", "optimization", "quick-protobuf"], version = "0.17" }
+wtx = { default-features = false, features = ["grpc", "optimization", "quick-protobuf"], version = "0.19" }
 
 [build-dependencies]
 pb-rs = { default-features = false, version = "0.10" }
