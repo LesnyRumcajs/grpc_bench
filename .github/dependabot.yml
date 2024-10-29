@@ -4,7 +4,8 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/" # Location of package manifests
+    directories:
+      - "**/*"
     open-pull-requests-limit: 1
     schedule:
       interval: "weekly"
@@ -15,7 +16,8 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/"
+    directories:
+      - "**/*"
     open-pull-requests-limit: 1
     schedule:
       interval: "weekly"
