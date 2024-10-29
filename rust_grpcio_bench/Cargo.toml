@@ -12,7 +12,7 @@ lto = true
 [dependencies]
 jemallocator = "0.5.0"
 grpcio = "0.12"
-protobuf = "2"
+protobuf = "3"
 futures = "0.3"
 
 [build-dependencies]
