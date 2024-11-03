@@ -1,4 +1,4 @@
-FROM golang:1.22.2-bookworm
+FROM golang:1.23.2-bookworm
 
 WORKDIR /app
 COPY go_vtconnect_bench /app
