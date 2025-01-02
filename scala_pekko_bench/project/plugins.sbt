@@ -1,4 +1,4 @@
-addSbtPlugin("org.apache.pekko" % "pekko-grpc-sbt-plugin" % "1.0.0")
+addSbtPlugin("org.apache.pekko" % "pekko-grpc-sbt-plugin" % "1.1.0")
 
 addSbtPlugin("com.lightbend.sbt" % "sbt-javaagent" % "0.1.6")
 
