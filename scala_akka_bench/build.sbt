@@ -33,6 +33,8 @@ libraryDependencies ++= Seq(
 // (doesn't seem to be important)
 assembly / assemblyMergeStrategy := {
   case PathList(ps @ _*) if ps.last endsWith ".proto" => MergeStrategy.first
+  case PathList("module-info.class") => MergeStrategy.last
+  case path if path.endsWith("/module-info.class") => MergeStrategy.last
   case x =>
     val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
