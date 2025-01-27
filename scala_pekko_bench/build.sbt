@@ -2,11 +2,11 @@ name := "pekko-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.16"
 
 run / fork := true
 
-val pekkoVersion = "1.1.2"
+val pekkoVersion = "1.1.3"
 val pekkoHttpVersion = "1.1.0"
 
 enablePlugins(PekkoGrpcPlugin)
@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % pekkoVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion % Test,
-  "org.scalatest" %% "scalatest" % "3.2.15" % Test
+  "org.scalatest" %% "scalatest" % "3.2.19" % Test
 )
 
 // pekko and Google provided proto files seem to differ a bit so we need to choose

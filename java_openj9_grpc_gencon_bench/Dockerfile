@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:open-18.0.2_9-jdk
+FROM ibm-semeru-runtimes:open-23.0.1_11-jdk
 
 WORKDIR /app
 COPY java_hotspot_grpc_sgc_bench/ /app
