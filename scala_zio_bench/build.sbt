@@ -2,11 +2,11 @@ name := "zio-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.15"
+scalaVersion := "2.13.16"
 
 run / fork := true
 
-val grpcVersion = "1.63.2"
+val grpcVersion = "1.64.0"
 
 Compile / PB.targets := Seq(
     scalapb.gen(grpc = true) -> (Compile / sourceManaged).value,
@@ -22,6 +22,6 @@ libraryDependencies ++= Seq(
 assembly / assemblyMergeStrategy := {
     case x if x.contains("io.netty.versions.properties") => MergeStrategy.discard
     case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
 }

@@ -1,4 +1,4 @@
-FROM hseeberger/scala-sbt:11.0.7_1.3.13_2.11.12 as BUILDER
+FROM sbtscala/scala-sbt:eclipse-temurin-23.0.1_11_1.10.7_3.6.3 as BUILDER
 
 WORKDIR /app
 COPY scala_zio_bench /app
