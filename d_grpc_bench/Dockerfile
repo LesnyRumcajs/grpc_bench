@@ -1,22 +1,33 @@
-FROM dlang2/ldc-ubuntu:1.26.0 AS builder
+# syntax=docker/dockerfile:1
 
-RUN apt update && apt install -y protobuf-compiler git cmake g++
+FROM buildpack-deps:bookworm AS builder
+
+RUN set -eux; \
+    wget -O ldc2-1.40.1-linux-x86_64.tar.xz https://github.com/ldc-developers/ldc/releases/download/v1.40.1/ldc2-1.40.1-linux-x86_64.tar.xz; \
+    echo "085a593dba4b1385ec03e7521aa97356e5a7d9f6194303eccb3c1e35935c69d8 *ldc2-1.40.1-linux-x86_64.tar.xz" | sha256sum -c -; \
+    tar --strip-components=1 -C /usr/local -Jxf ldc2-1.40.1-linux-x86_64.tar.xz; \
+    rm ldc2-1.40.1-linux-x86_64.tar.xz
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        protobuf-compiler \
+        git \
+        cmake \
+        g++; \
+    rm -fr /var/lib/apt/lists/*
+
+# Building the protocol buffer compiler for D
+RUN dub build protobuf:protoc-gen-d
 
 WORKDIR /app
 RUN git clone --depth 1 --branch master --recurse-submodules https://github.com/huntlabs/grpc-dlang
-WORKDIR /app/grpc-dlang
-# Building the protocol buffer compiler for D
-RUN dub build protobuf:protoc-gen-d
 # Building the gRPC plugin for D
-WORKDIR /app/grpc-dlang/compiler
-RUN mkdir build
+RUN mkdir -p /app/grpc-dlang/compiler/build
 WORKDIR /app/grpc-dlang/compiler/build
 RUN cmake .. && make -j4
 RUN cp deps/protobuf/protoc* /usr/local/bin
 RUN cp grpc_dlang_plugin /usr/local/bin
-# Building the core library
-WORKDIR /app/grpc-dlang
-RUN dub build
 
 COPY proto /app/proto
 COPY d_grpc_bench /app
@@ -26,7 +37,7 @@ RUN protoc --plugin=protoc-gen-grpc=/usr/local/bin/grpc_dlang_plugin --grpc_out=
 
 RUN dub build -b release
 
-FROM ubuntu:18.04
+FROM debian:bookworm-slim AS final
 WORKDIR /app
 COPY --from=builder /app/server .
 ENTRYPOINT [ "/app/server" ]
