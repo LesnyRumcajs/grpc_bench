@@ -21,11 +21,15 @@ RUN set -eux; \
 RUN dub build protobuf:protoc-gen-d
 
 WORKDIR /app
-RUN git clone --depth 1 --branch master --recurse-submodules https://github.com/huntlabs/grpc-dlang
+RUN git clone https://github.com/huntlabs/grpc-dlang && \
+    cd grpc-dlang && \
+    git checkout cce7a8fd14563292adcd562e65afdcc10b9ce3f2 && \
+    git submodule update --init --depth=1
+
 # Building the gRPC plugin for D
 RUN mkdir -p /app/grpc-dlang/compiler/build
 WORKDIR /app/grpc-dlang/compiler/build
-RUN cmake .. && make -j4
+RUN cmake -Dprotobuf_BUILD_TESTS=OFF .. && make -j4
 RUN cp deps/protobuf/protoc* /usr/local/bin
 RUN cp grpc_dlang_plugin /usr/local/bin
 
