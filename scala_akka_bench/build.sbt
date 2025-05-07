@@ -15,7 +15,7 @@ enablePlugins(AkkaGrpcPlugin)
 resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "1.2.13",
+  "ch.qos.logback" % "logback-classic" % "1.5.16",
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
@@ -33,6 +33,8 @@ libraryDependencies ++= Seq(
 // (doesn't seem to be important)
 assembly / assemblyMergeStrategy := {
   case PathList(ps @ _*) if ps.last endsWith ".proto" => MergeStrategy.first
+  case PathList("module-info.class") => MergeStrategy.last
+  case path if path.endsWith("/module-info.class") => MergeStrategy.last
   case x =>
     val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)

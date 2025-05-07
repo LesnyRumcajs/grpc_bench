@@ -1,4 +1,4 @@
-FROM rust:1.76
+FROM rust:1.82
 
 WORKDIR /app
 COPY rust_thruster_st_bench /app
