@@ -12,7 +12,7 @@ lto = true
 [dependencies]
 async-trait = "0.1"
 bytes = "1.2.1"
-dotenv = "0.13.0"
+dotenv = "0.15.0"
 env_logger = "0.7.1"
 log = "0.4"
 hyper = "0.14.19"
