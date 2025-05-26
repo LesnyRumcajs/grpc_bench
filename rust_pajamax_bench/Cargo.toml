@@ -10,7 +10,7 @@ name = "helloworld"
 path = "src/helloworld.rs"
 
 [dependencies]
-pajamax = "0.1.1"
+pajamax = "0.2.0"
 prost = "0.13.5"
 
 [build-dependencies]
