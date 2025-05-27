@@ -1,6 +1,6 @@
 [package]
 name = "rust_pajamax"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Wu Bingzheng <wubingzheng@gmail.com>"]
 edition = "2021"
 license = "MIT"
@@ -10,9 +10,9 @@ name = "helloworld"
 path = "src/helloworld.rs"
 
 [dependencies]
-pajamax = "0.1.1"
+pajamax = "0.2.0"
 prost = "0.13.5"
 
 [build-dependencies]
-pajamax-build = "0.1.0"
+pajamax-build = "0.2.0"
 prost-build = "0.13.5"
