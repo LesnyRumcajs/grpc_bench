@@ -4,7 +4,7 @@ path = "src/main.rs"
 
 [dependencies]
 quick-protobuf = { default-features = false, version = "0.8" }
-tokio = { default-features = false, features = ["parking_lot", "rt-multi-thread"], version = "1.43" }
+tokio = { default-features = false, features = ["parking_lot", "rt-multi-thread"], version = "1.45" }
 wtx = { default-features = false, features = ["grpc-server", "http", "nightly", "optimization", "quick-protobuf", "tokio"], version = "0.25" }
 
 [build-dependencies]
