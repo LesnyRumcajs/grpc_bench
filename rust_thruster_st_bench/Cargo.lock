@@ -389,6 +389,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "http"
+version = "1.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4a85d31aea989eead29a3aaf9e1115a180df8282431156e533de47660892565"
+dependencies = [
+ "bytes 1.5.0",
+ "fnv",
+ "itoa 1.0.10",
+]
+
+[[package]]
 name = "http-body"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -936,7 +947,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "futures",
- "http 0.2.12",
+ "http 1.3.1",
  "http-body",
  "hyper",
  "jemallocator",
