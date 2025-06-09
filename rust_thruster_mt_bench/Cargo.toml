@@ -22,7 +22,7 @@ jemallocator = "0.5.0"
 prost = "0.11.0"
 thruster = { version = "1.3.10", features = ["hyper_server"] }
 thruster-grpc = "0.2.3"
-tokio = { version = "1.42", features = ["parking_lot", "rt-multi-thread", "macros", "io-util"] }
+tokio = { version = "1.43", features = ["parking_lot", "rt-multi-thread", "macros", "io-util"] }
 
 futures = "0.3.24"
 
