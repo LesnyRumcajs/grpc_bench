@@ -15,7 +15,7 @@ jobs:
         issue-number: ${{ github.event.issue.number }}  
         body: |
           Serving the benchmark. I will update the issue when it's finished. 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Build images
       run: ./build.sh
     - name: Run tests
