@@ -18,7 +18,7 @@ jobs:
   meta-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: ./generate_ci.sh | tee .github/workflows/build.yml
     - run: git --no-pager diff --exit-code
 
@@ -42,7 +42,7 @@ jobs:
       base: \${{ steps.base.outputs.base }}
     steps:
     - name: Deep checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
@@ -81,7 +81,7 @@ while read -r bench; do
     if: fromJSON(needs.changed.outputs.base) || contains(needs.changed.outputs.files, '$bench/')
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Build $bench
       run: ./build.sh $bench
