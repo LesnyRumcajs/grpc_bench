@@ -6,8 +6,8 @@ scalaVersion := "2.13.16"
 
 run / fork := true
 
-val pekkoVersion = "1.1.3"
-val pekkoHttpVersion = "1.1.0"
+val pekkoVersion = "1.2.0"
+val pekkoHttpVersion = "1.2.0"
 
 enablePlugins(PekkoGrpcPlugin)
 
