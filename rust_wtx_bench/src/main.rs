@@ -1,13 +1,13 @@
 pub mod grpc_bindings;
 
 use wtx::{
-    data_transformation::dnsn::QuickProtobuf,
+    de::format::QuickProtobuf,
     grpc::{GrpcManager, GrpcMiddleware},
     http::{
         server_framework::{post, Router, ServerFrameworkBuilder, State},
         ReqResBuffer, StatusCode,
     },
-    misc::{simple_seed, Xorshift64},
+    rng::{simple_seed, Xorshift64},
 };
 
 fn main() -> wtx::Result<()> {
@@ -20,14 +20,9 @@ fn main() -> wtx::Result<()> {
                 wtx::paths!(("/helloworld.Greeter/SayHello", post(say_hello))),
                 GrpcMiddleware,
             )?;
-            ServerFrameworkBuilder::new(router)
-                .with_req_aux(|| QuickProtobuf::default())
-                .tokio(
-                    "0.0.0.0:50051",
-                    Xorshift64::from(simple_seed()),
-                    |_| {},
-                    |_| Ok(()),
-                )
+            ServerFrameworkBuilder::new(Xorshift64::from(simple_seed()), router)
+                .with_stream_aux(|_| Ok(QuickProtobuf))
+                .tokio("0.0.0.0:50051", |_| {}, |_| Ok(()), |_| {})
                 .await
         })
 }
