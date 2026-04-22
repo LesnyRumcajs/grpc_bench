@@ -4,7 +4,7 @@ use hello_world::greeter_server::{Greeter, GreeterServer};
 use hello_world::{HelloReply, HelloRequest};
 
 #[global_allocator]
-static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 
 pub mod hello_world {
@@ -51,6 +51,7 @@ async fn serve() -> Result<(), Box<dyn std::error::Error>> {
     println!("GreeterServer listening on {}", addr);
 
     Server::builder()
+        .tcp_nodelay(true)
         .add_service(GreeterServer::new(greeter))
         .serve(addr)
         .await?;
