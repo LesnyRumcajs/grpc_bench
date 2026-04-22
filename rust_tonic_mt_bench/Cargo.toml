@@ -10,13 +10,14 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-jemallocator = "0.5.0"
-tonic = "0.11"
-prost = "0.12"
-tokio = { version = "1.45", features = ["parking_lot", "rt-multi-thread", "macros", "io-util"] }
+tikv-jemallocator = "0.6"
+tonic = "0.14"
+tonic-prost = "0.14"
+prost = "0.14"
+tokio = { version = "1.52", features = ["parking_lot", "rt-multi-thread"] }
 
 [build-dependencies]
-tonic-build = "0.11"
+tonic-prost-build = "0.14"
 
 [[bin]]
 name = "helloworld-server"
