@@ -13,8 +13,8 @@ executable haskell-grpc-haskell-bench
     , deepseq
     , grpc-haskell
     , grpc-haskell-core
-    , proto3-suite       ^>=0.6
-    , proto3-wire        ^>=1.4
+    , proto3-suite
+    , proto3-wire
     , text
     , vector
 

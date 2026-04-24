@@ -1,4 +1,4 @@
-FROM docker.io/library/haskell:8.10.7
+FROM docker.io/library/haskell:9.12
 
 RUN apt-get update && apt-get install -y \
       build-essential autoconf libtool libssl-dev pkg-config cmake git
@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
 ARG PARALLEL
 RUN BUILD_DIR=$(mktemp -d) && \
     cd $BUILD_DIR && \
-    git clone --depth 1 --branch v1.42.0 --recurse-submodules https://github.com/grpc/grpc && \
+    git clone --depth 1 --branch v1.72.0 --recurse-submodules https://github.com/grpc/grpc && \
     cd grpc && \
     cmake -DCMAKE_INSTALL_PREFIX=/usr \
           -DgRPC_BUILD_TESTS=OFF \
@@ -26,4 +26,4 @@ RUN cd /app/bench && cabal update && make && cabal install
 
 RUN rm -rf /app
 
-ENTRYPOINT /root/.cabal/bin/haskell-grpc-haskell-bench +RTS -N${GRPC_SERVER_CPUS:-1}
+ENTRYPOINT ["sh", "-c", "/root/.local/bin/haskell-grpc-haskell-bench +RTS -N${GRPC_SERVER_CPUS:-1}"]
