@@ -1,0 +1,40 @@
+packages:
+  .
+
+source-repository-package
+    type: git
+    location: https://github.com/awakesecurity/gRPC-haskell.git
+    tag: c911a056dbd33005101e959ab8252572e11b0683
+
+source-repository-package
+    type: git
+    location: https://github.com/awakesecurity/gRPC-haskell.git
+    tag: c911a056dbd33005101e959ab8252572e11b0683
+    subdir: core
+
+-- Hackage's proto3-suite-0.9.4 doesn't compile on GHC 9.12. Pin to
+-- current upstream master (0.9.5+), which has ghc-lib-parser-9.12
+-- support and the relaxed template-haskell upper bound.
+source-repository-package
+    type: git
+    location: https://github.com/awakesecurity/proto3-suite.git
+    tag: 31ba01f512864e8c20b444ffc44028084fb6e49d
+
+-- proto3-suite 0.9.x still has conservative upper bounds (hashable<1.5,
+-- base<4.21, etc.) that prevent building on modern GHCs. Upstream
+-- grpc-haskell jailbreaks it via Nix; do the same here so the solver
+-- can pick packages compatible with GHC 9.12.
+allow-newer: proto3-suite:*
+
+-- swagger2-2.9 replaced its re-exported InsOrdHashMap with an internal
+-- Compat wrapper, which is incompatible with proto3-suite's generated
+-- Timestamp schema. Stay on the 2.8 line.
+constraints: swagger2 <2.9
+
+-- proto3-suite master tracks ghc-lib-parser-9.12.x; newer (9.14+) moves
+-- the GHC.Hs / GHC.Parser.Lexer APIs again. Pin to the 9.12 line.
+constraints: ghc-lib-parser <9.13
+
+package grpc-haskell-core
+  extra-include-dirs: /usr/local/include
+  extra-lib-dirs: /usr/local/lib

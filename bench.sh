@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## The list of benchmarks to run
 BENCHMARKS_TO_RUN="${@}"

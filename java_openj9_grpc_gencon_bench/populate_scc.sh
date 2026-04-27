@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "$VERBOSE" != "true" ]; then
   exec &>/dev/null
 fi

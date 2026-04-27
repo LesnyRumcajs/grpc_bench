@@ -1,6 +1,5 @@
-#!/bin/bash -eu
-
-set -o pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
 export GRPC_REQUEST_SCENARIO=${GRPC_REQUEST_SCENARIO:-"complex_proto"}
 

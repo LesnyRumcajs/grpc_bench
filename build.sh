@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ./generate_ci.sh >.github/workflows/build.yml
 
