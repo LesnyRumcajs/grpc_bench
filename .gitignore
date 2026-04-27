@@ -9,3 +9,5 @@ payload/
 
 # Build output
 build/
+target/
+project/project/
