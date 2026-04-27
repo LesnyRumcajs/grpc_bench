@@ -14,5 +14,5 @@ pajamax = "0.2.0"
 prost = "0.13.5"
 
 [build-dependencies]
-pajamax-build = "0.2.0"
+pajamax-build = "0.3.0"
 prost-build = "0.14.1"
