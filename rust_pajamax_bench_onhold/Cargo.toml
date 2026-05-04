@@ -11,7 +11,7 @@ path = "src/helloworld.rs"
 
 [dependencies]
 pajamax = "0.2.0"
-prost = "0.13.5"
+prost = "0.14.3"
 
 [build-dependencies]
 pajamax-build = "0.3.0"
