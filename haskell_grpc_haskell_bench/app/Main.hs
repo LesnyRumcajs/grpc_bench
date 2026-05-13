@@ -1,24 +1,33 @@
 {-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE OverloadedLists   #-}
+{-# LANGUAGE OverloadedLabels  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Main where
 
-import           Network.GRPC.HighLevel
-import           Network.GRPC.HighLevel.Generated
+import Network.GRPC.Common
+import Network.GRPC.Common.Protobuf
+import Network.GRPC.Server.Protobuf
+import Network.GRPC.Server.Run
+import Network.GRPC.Server.StreamType
 
-import           Helloworld
+import Proto.API.Helloworld
+
+sayHello :: Proto HelloRequest -> IO (Proto HelloReply)
+sayHello req =
+    pure $ defMessage & #response .~ (req ^. #request)
+
+methods :: Methods IO (ProtobufMethodsOf Greeter)
+methods =
+      Method (mkNonStreaming sayHello)
+    $ NoMoreMethods
 
 main :: IO ()
-main =
-  greeterServer
-    (Greeter{ greeterSayHello = sayHello })
-    defaultServiceOptions{serverHost = "0.0.0.0", serverPort = 50051}
-
-sayHello
-  :: ServerRequest 'Normal HelloRequest HelloReply
-  -> IO (ServerResponse 'Normal HelloReply)
-sayHello (ServerNormalRequest _metadata HelloRequest{..}) = do
-  return $ ServerNormalResponse (HelloReply helloRequestRequest) [] StatusOk ""
+main = runServerWithHandlers def config $ fromMethods methods
+  where
+    config :: ServerConfig
+    config = ServerConfig
+        { serverInsecure = Just (InsecureConfig (Just "0.0.0.0") 50051)
+        , serverSecure   = Nothing
+        }
