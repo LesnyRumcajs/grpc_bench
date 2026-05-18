@@ -1,7 +1,7 @@
 FROM sbtscala/scala-sbt:eclipse-temurin-23.0.1_11_1.10.7_3.6.3 as BUILDER
 
 WORKDIR /app
-COPY proteus_ox_bench /app
+COPY scala_proteus_ox_bench /app
 
 RUN sbt assembly
 
