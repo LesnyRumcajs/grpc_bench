@@ -2,12 +2,12 @@ name := "pekko-grpc-quickstart-scala"
 
 version := "1.0"
 
-scalaVersion := "2.13.17"
+scalaVersion := "2.13.18"
 
 run / fork := true
 
-val pekkoVersion = "1.2.1"
-val pekkoHttpVersion = "1.3.0"
+val pekkoVersion = "2.0.0-M1"
+val pekkoHttpVersion = "2.0.0-M1"
 
 enablePlugins(PekkoGrpcPlugin)
 
