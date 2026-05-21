@@ -7,7 +7,7 @@ scalaVersion := "3.3.7"
 run / fork := true
 
 val grpcVersion    = "1.81.0"
-val proteusVersion = "0.3.3"
+val proteusVersion = "0.4.0"
 
 libraryDependencies ++= Seq(
   "com.github.ghostdogpr" %% "proteus-grpc-ox" % proteusVersion,
