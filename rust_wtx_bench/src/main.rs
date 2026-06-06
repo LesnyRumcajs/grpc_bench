@@ -1,18 +1,18 @@
 pub mod grpc_bindings;
 
 use wtx::{
-    de::format::QuickProtobuf,
+    codec::format::QuickProtobuf,
     grpc::{GrpcManager, GrpcMiddleware},
     http::{
         server_framework::{post, Router, ServerFrameworkBuilder, State},
-        ReqResBuffer, StatusCode,
+        HttpRecvParams, MsgBufferString, StatusCode,
     },
-    rng::{simple_seed, Xorshift64},
+    misc::var
 };
 
 fn main() -> wtx::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(std::env::var("GRPC_SERVER_CPUS")?.parse()?)
+        .worker_threads(var("GRPC_SERVER_CPUS")?.parse()?)
         .enable_all()
         .build()?
         .block_on(async move {
@@ -20,15 +20,15 @@ fn main() -> wtx::Result<()> {
                 wtx::paths!(("/helloworld.Greeter/SayHello", post(say_hello))),
                 GrpcMiddleware,
             )?;
-            ServerFrameworkBuilder::new(Xorshift64::from(simple_seed()), router)
+            ServerFrameworkBuilder::new(HttpRecvParams::with_permissive_params(), router)
                 .with_stream_aux(|_| Ok(QuickProtobuf))
-                .tokio("0.0.0.0:50051", |_| {}, |_| Ok(()), |_| {})
+                .tokio("0.0.0.0:50051", |_| {}, |_| Ok(()), |_| Ok(()), |_| {})
                 .await
         })
 }
 
 async fn say_hello(
-    _: State<'_, (), GrpcManager<QuickProtobuf>, ReqResBuffer>,
+    _: State<'_, (), GrpcManager<QuickProtobuf>, MsgBufferString>,
 ) -> wtx::Result<StatusCode> {
     Ok(StatusCode::Ok)
 }
