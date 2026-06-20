@@ -7,6 +7,7 @@ scalaVersion := "2.13.18"
 run / fork := true
 
 val pekkoVersion = "2.0.0-M3"
+val pekkoStreamVersion = "2.0.0-M3"
 val pekkoHttpVersion = "2.0.0-LOCAL"
 val pekkoGrpcVersion = "2.0.0-LOCAL"
 
@@ -22,13 +23,13 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http" % pekkoHttpVersion,
   "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion,
   "org.apache.pekko" %% "pekko-parsing" % pekkoHttpVersion,
-  "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
+  "org.apache.pekko" %% "pekko-stream" % pekkoStreamVersion,
   "org.apache.pekko" %% "pekko-discovery" % pekkoVersion,
   "org.apache.pekko" %% "pekko-pki" % pekkoVersion,
   "org.apache.pekko" %% "pekko-slf4j" % pekkoVersion,
   "org.apache.pekko" %% "pekko-grpc-runtime" % pekkoGrpcVersion,
-  "org.apache.pekko" %% "pekko-actor-testkit-typed" % pekkoVersion % Test,
-  "org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion % Test,
+  "org.apache.pekko" %% "pekko-actor-testkit-typed" % "2.0.0-M3" % Test,
+  "org.apache.pekko" %% "pekko-stream-testkit" % "2.0.0-M3" % Test,
   "org.scalatest" %% "scalatest" % "3.2.19" % Test
 )
 
@@ -38,7 +39,10 @@ dependencyOverrides ++= Seq(
   "org.apache.pekko" %% "pekko-parsing" % pekkoHttpVersion
 )
 
-// pekko and Google provided proto files seem to differ a bit so we need to choose
+evictionErrorLevel := Level.Warn
+
+libraryDependencySchemes += "org.apache.pekko" %% "pekko-actor-testkit-typed" % VersionScheme.Always
+libraryDependencySchemes += "org.apache.pekko" %% "pekko-stream-testkit" % VersionScheme.Always
 // (doesn't seem to be important)
 assembly / mainClass := Some("io.grpc.examples.helloworld.GreeterServer")
 
