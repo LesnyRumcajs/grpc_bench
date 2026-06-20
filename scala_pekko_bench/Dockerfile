@@ -8,7 +8,7 @@ RUN sbt assembly
 
 FROM eclipse-temurin:23-jdk-noble
 
-ENV GC "-XX:+UseParallelGC"
+ENV GC "-XX:+UseSerialGC"
 ENV _JAVA_OPTIONS "${GC} -XX:MinRAMPercentage=70 -XX:MaxRAMPercentage=70"
 
 COPY --from=builder /app/target/scala-2.13/pekko-grpc-quickstart-scala-assembly-1.0.jar .

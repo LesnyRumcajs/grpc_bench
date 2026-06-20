@@ -27,7 +27,7 @@ class GreeterServer(implicit system: ActorSystem[_]) {
     val service: HttpRequest => Future[HttpResponse] =
       GreeterHandler(new GreeterServiceImpl)
 
-    println(s"Parallel: ${system.settings.config.getString("pekko.actor.default-dispatcher.fork-join-executor.parallelism-max")} GRPC_SERVER_CPUS: ${sys.env.get("GRPC_SERVER_CPUS")}")
+    println(s"Dispatcher parallelism-factor: ${system.settings.config.getDouble("pekko.actor.default-dispatcher.fork-join-executor.parallelism-factor")} Available processors: ${Runtime.getRuntime.availableProcessors()}")
 
     // Pekko HTTP 10.1 requires adapters to accept the new actors APIs
     val bound = Http()(system.toClassic).newServerAt(
