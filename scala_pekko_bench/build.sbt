@@ -7,7 +7,7 @@ scalaVersion := "2.13.18"
 run / fork := true
 
 val pekkoVersion = "2.0.0-M3"
-val pekkoHttpVersion = "2.0.0-M1"
+val pekkoHttpVersion = "2.0.0-LOCAL"
 val pekkoGrpcVersion = "2.0.0-LOCAL"
 
 enablePlugins(PekkoGrpcPlugin)
@@ -30,6 +30,12 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % pekkoVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion % Test,
   "org.scalatest" %% "scalatest" % "3.2.19" % Test
+)
+
+dependencyOverrides ++= Seq(
+  "org.apache.pekko" %% "pekko-http" % pekkoHttpVersion,
+  "org.apache.pekko" %% "pekko-http-core" % pekkoHttpVersion,
+  "org.apache.pekko" %% "pekko-parsing" % pekkoHttpVersion
 )
 
 // pekko and Google provided proto files seem to differ a bit so we need to choose
