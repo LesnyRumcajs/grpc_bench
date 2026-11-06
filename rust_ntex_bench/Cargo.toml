@@ -1,0 +1,18 @@
+[package]
+name = "rust_ntex"
+version = "0.1.0"
+edition = "2024"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[dependencies]
+mimalloc = "0.1"
+ntex = "4.6"
+ntex-grpc = "4.1"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/main.rs"
