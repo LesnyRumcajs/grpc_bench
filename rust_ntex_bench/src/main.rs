@@ -37,7 +37,10 @@ impl ServiceFactory<(), server::ServerRequest> for GreeterServer {
 
 #[ntex::main]
 async fn main() -> std::io::Result<()> {
-    let workers = 1;
+    let workers = std::env::var("GRPC_SERVER_CPUS")
+        .unwrap_or("1".to_string())
+        .parse()
+        .unwrap();
     let addr = "0.0.0.0:50051";
 
     println!("Running with {workers} workers");

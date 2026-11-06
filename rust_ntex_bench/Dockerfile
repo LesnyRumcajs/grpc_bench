@@ -1,7 +1,7 @@
-FROM rust:latest
+FROM rust:1.97
 
 WORKDIR /app
-COPY rust_ntex_st_bench /app
+COPY rust_ntex_bench /app
 COPY proto /app/proto
 
 RUN apt-get update && apt-get install -y protobuf-compiler
