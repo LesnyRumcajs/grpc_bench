@@ -7,8 +7,7 @@ COPY proto /app/proto
 RUN apt-get update && apt-get install -y protobuf-compiler
 RUN cargo install ntex-grpc-codegen --version 1.0.0 --locked
 RUN ntex-grpc proto/helloworld/helloworld.proto helloworld.rs --out-dir src --include-dir proto/helloworld
-ENV RUSTFLAGS="-C target-cpu=native" \
-    CARGO_PROFILE_RELEASE_LTO=thin
+ENV RUSTFLAGS="-C target-cpu=native"
 RUN cargo build --release --locked
 
 ENTRYPOINT ["/app/target/release/helloworld-server"]
