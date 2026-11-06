@@ -1,4 +1,4 @@
-FROM rust:1.97
+FROM rust:1.99
 
 WORKDIR /app
 COPY rust_ntex_bench /app

@@ -1,4 +1,4 @@
-FROM rust:1.82
+FROM rust:1.99
 
 WORKDIR /app
 COPY rust_pajamax_bench /app
