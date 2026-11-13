@@ -45,7 +45,7 @@ Linux or MacOS with Docker. Keep in mind that the results on MacOS may not be th
 # Running benchmark
 To build the benchmarks images use: `./build.sh [BENCH1] [BENCH2] ...` . You need them to run the benchmarks.
 
-The .NET benchmark (`dotnet_grpc_bench`) targets .NET 11 and uses the official .NET 11 SDK Docker image.
+The .NET benchmark (`dotnet_grpc_bench`) targets .NET 11, builds with the official .NET 11 SDK Docker image, and runs in the ASP.NET Core runtime image.
 
 To run the benchmarks use: `./bench.sh [BENCH1] [BENCH2] ...` . They will be run sequentially.
 
