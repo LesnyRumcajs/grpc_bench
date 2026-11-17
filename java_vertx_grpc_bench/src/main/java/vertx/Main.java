@@ -9,8 +9,8 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.grpcio.server.GrpcIoServer;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,7 +29,7 @@ public class Main {
     static class ServerVerticle extends AbstractVerticle {
         @Override
         public void start(Promise<Void> startPromise) throws Exception {
-            GrpcServer grpcServer = GrpcServer.server(vertx);
+            GrpcIoServer grpcServer = GrpcIoServer.server(vertx);
             grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request -> {
                 request.handler(helloRequest -> {
                     GrpcServerResponse<HelloRequest, HelloReply> response = request.response();

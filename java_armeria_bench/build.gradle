@@ -1,6 +1,6 @@
 plugins {
     id 'application'
-    id 'com.google.protobuf' version '0.8.19'
+    id 'com.google.protobuf' version '0.10.1'
     id 'idea'
 }
 
@@ -11,13 +11,15 @@ repositories {
     mavenLocal()
 }
 
-sourceCompatibility = 17
-targetCompatibility = 17
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 
-def armeriaVersion = '1.20.3'
-def grpcVersion = '1.58.0'
-def protocVersion = '3.21.5'
+def armeriaVersion = '1.43.0'
+def grpcVersion = '1.85.1'
+def protocVersion = '3.25.9'
 
 dependencies {
     implementation "com.linecorp.armeria:armeria:${armeriaVersion}"
@@ -48,13 +50,13 @@ sourceSets {
 startScripts.enabled = false
 
 task helloWorldServer(type: CreateStartScripts) {
-    mainClassName = 'com.linecorp.armeria.examples.helloworld.HelloWorldServer'
+    mainClass = 'com.linecorp.armeria.examples.helloworld.HelloWorldServer'
     applicationName = 'hello-world-server'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
-applicationDistribution.into('bin') {
+distributions.main.contents.into('bin') {
     from(helloWorldServer)
-    fileMode = 0755
+    filePermissions { unix('rwxr-xr-x') }
 }
