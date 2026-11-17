@@ -14,7 +14,9 @@
 
 #include "helloworld.grpc.pb.h"
 
-#include <agrpc/asioGrpc.hpp>
+#include <agrpc/asio_grpc.hpp>
+#include <agrpc/register_yield_rpc_handler.hpp>
+#include <boost/asio/detached.hpp>
 #include <boost/asio/spawn.hpp>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
@@ -24,38 +26,18 @@
 #include <thread>
 #include <vector>
 
-struct UnaryRPCContext {
-  grpc::ServerContext server_context;
-  helloworld::HelloRequest request;
-  grpc::ServerAsyncResponseWriter<helloworld::HelloReply> writer{
-      &server_context};
-};
+using RPC = agrpc::ServerRPC<&helloworld::Greeter::AsyncService::RequestSayHello>;
 
-void spawn_accept_loop(
-    agrpc::GrpcContext &grpc_context,
-    helloworld::Greeter::AsyncService &service,
-    boost::asio::executor_work_guard<agrpc::GrpcContext::executor_type>
-        &guard) {
-  boost::asio::spawn(grpc_context, [&](auto yield) {
-    bool request_ok{true};
-    while (request_ok) {
-      auto context =
-          std::allocate_shared<UnaryRPCContext>(grpc_context.get_allocator());
-      request_ok = agrpc::request(
-          &helloworld::Greeter::AsyncService::RequestSayHello, service,
-          context->server_context, context->request, context->writer, yield);
-      if (!request_ok) {
-        guard.reset();
-        return;
-      }
-      helloworld::HelloReply response;
-      *response.mutable_response() = std::move(*context->request.mutable_request());
-      auto &writer = context->writer;
-      agrpc::finish(writer, response, grpc::Status::OK,
-                    boost::asio::bind_executor(
-                        grpc_context, [context = std::move(context)]() {}));
-    }
-  });
+void register_handler(agrpc::GrpcContext &grpc_context,
+                      helloworld::Greeter::AsyncService &service) {
+  agrpc::register_yield_rpc_handler<RPC>(
+      grpc_context, service,
+      [](RPC &rpc, RPC::Request &request, const boost::asio::yield_context &yield) {
+        RPC::Response response;
+        *response.mutable_response() = std::move(*request.mutable_request());
+        rpc.finish(response, grpc::Status::OK, yield);
+      },
+      boost::asio::detached);
 }
 
 int main() {
@@ -81,8 +63,7 @@ int main() {
   for (int i = 0; i < parallelism; ++i) {
     threads.emplace_back([&, i] {
       auto &grpc_context = *std::next(grpc_contexts.begin(), i);
-      auto guard = boost::asio::make_work_guard(grpc_context);
-      spawn_accept_loop(grpc_context, service, guard);
+      register_handler(grpc_context, service);
       grpc_context.run();
     });
   }
