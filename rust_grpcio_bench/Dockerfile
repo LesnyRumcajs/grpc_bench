@@ -1,4 +1,4 @@
-FROM rust:1.99
+FROM rust:1.100
 
 RUN apt update && apt install -y protobuf-compiler cmake
 

@@ -11,13 +11,13 @@ lto = true
 
 [dependencies]
 tikv-jemallocator = "0.6"
-tonic = "0.14"
-tonic-prost = "0.14"
-prost = "0.14"
-tokio = { version = "1.52", features = ["parking_lot", "rt-multi-thread"] }
+tonic = "0.14.9"
+tonic-prost = "0.14.9"
+prost = "0.14.6"
+tokio = { version = "1.54", features = ["parking_lot", "rt-multi-thread"] }
 
 [build-dependencies]
-tonic-prost-build = "0.14"
+tonic-prost-build = "0.14.9"
 
 [[bin]]
 name = "helloworld-server"
