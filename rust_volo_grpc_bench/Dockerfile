@@ -1,0 +1,10 @@
+FROM rust:1.100
+
+WORKDIR /app
+COPY rust_volo_grpc_bench /app
+COPY proto /app/proto
+
+RUN rustup component add rustfmt
+RUN cargo build --release --locked
+
+ENTRYPOINT ["/app/target/release/helloworld-server"]
