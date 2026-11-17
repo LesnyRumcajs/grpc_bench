@@ -1,9 +1,14 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 
 WORKDIR /app
 COPY dotnet_grpc_bench /app
 COPY proto /proto
 
-RUN dotnet build -c Release Greeter.sln
+RUN dotnet publish -c Release -o /app/publish GreeterServer/GreeterServer.csproj
 
-ENTRYPOINT [ "dotnet", "run" , "-c", "Release", "-p", "GreeterServer", "--no-build" ]
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
+
+WORKDIR /app
+COPY --from=build /app/publish .
+
+ENTRYPOINT [ "dotnet", "GreeterServer.dll" ]
