@@ -1,4 +1,4 @@
-FROM node:20.3
+FROM node:26.13.1
 
 WORKDIR /app
 COPY node_grpcjs_st_bench /app

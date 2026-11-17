@@ -1,13 +1,16 @@
-FROM swift:6.0.3 AS builder
+FROM swift:6.4.2 AS builder
 
 WORKDIR /app
 
 # Getting protoc-gen-swift and protoc-gen-grpc-swift
-RUN apt update && apt install -y protobuf-compiler git make
-RUN git clone --depth 1 --single-branch --branch 1.21.0 https://github.com/grpc/grpc-swift
+RUN apt update && apt install -y protobuf-compiler git
+RUN git clone --depth 1 --single-branch --branch 1.27.6 https://github.com/grpc/grpc-swift
 WORKDIR /app/grpc-swift
-RUN make plugins
-RUN cp /app/grpc-swift/protoc-* /usr/local/bin
+RUN swift build -c release --product protoc-gen-grpc-swift
+# protoc-gen-swift comes from the swift-protobuf version resolved above
+WORKDIR /app/grpc-swift/.build/checkouts/swift-protobuf
+RUN swift build -c release --product protoc-gen-swift
+RUN cp /app/grpc-swift/.build/release/protoc-gen-grpc-swift /app/grpc-swift/.build/checkouts/swift-protobuf/.build/release/protoc-gen-swift /usr/local/bin
 
 COPY swift_grpc_bench /app
 COPY proto /app/proto
@@ -21,7 +24,7 @@ RUN protoc --proto_path=/app/proto/helloworld --plugin=/usr/local/bin/protoc-gen
 RUN swift package resolve
 RUN swift build -c release -Xswiftc -enforce-exclusivity=unchecked
 
-FROM swift:6.0.3
+FROM swift:6.4.2
 WORKDIR /app
 RUN mkdir /app/.build
 COPY --from=builder /app/.build /app/.build

@@ -49,7 +49,6 @@ function main() {
     grpc.ServerCredentials.createInsecure(),
     (err, port) => {
       process.stdout.write("Server started on 50051");
-      server.start();
     }
   );
 }
