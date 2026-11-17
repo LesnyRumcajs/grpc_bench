@@ -1,20 +1,13 @@
-import com.google.protobuf.gradle.generateProtoTasks
-import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.ofSourceSet
-import com.google.protobuf.gradle.plugins
-import com.google.protobuf.gradle.protobuf
-import com.google.protobuf.gradle.protoc
-
-val grpcVersion = "1.58.0"
-val grpcKotlinVersion = "1.3.0"
-val protobufVersion = "3.21.5"
-val coroutinesVersion = "1.6.4"
+val grpcVersion = "1.85.1"
+val grpcKotlinVersion = "1.5.0"
+val protobufVersion = "4.36.2"
+val coroutinesVersion = "1.11.0"
 
 plugins {
     application
-    kotlin("jvm") version "1.7.10"
-    id("com.google.protobuf") version "0.8.19"
-    id("org.jlleitschuh.gradle.ktlint") version "11.0.0"
+    kotlin("jvm") version "2.4.21"
+    id("com.google.protobuf") version "0.10.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
 repositories {
@@ -39,25 +32,32 @@ protobuf {
         artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     plugins {
-        id("grpc"){
-            artifact = "io.grpc:protoc-gen-grpc-java:1.49.0@exe"
+        register("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion@exe"
         }
-        id("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:1.3.0:jdk8@jar"
+        register("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:$grpcKotlinVersion:jdk8@jar"
         }
     }
     generateProtoTasks {
-        ofSourceSet("main").forEach {
+        all().forEach {
             it.plugins {
-                id("grpc")
-                id("grpckt")
+                create("grpc")
+                create("grpckt")
             }
         }
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 application {
