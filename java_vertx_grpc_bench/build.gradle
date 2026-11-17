@@ -1,19 +1,19 @@
 plugins {
     id 'application'
-    id "com.google.protobuf" version "0.8.19"
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "com.google.protobuf" version "0.10.1"
+    id "com.gradleup.shadow" version "9.6.1"
 }
 
 repositories {
     mavenCentral()
 }
 
-def grpcVersion = '1.58.0' // CURRENT_GRPC_VERSION
-def protobufVersion = '3.21.6'
+def grpcVersion = '1.85.1' // CURRENT_GRPC_VERSION
+def protobufVersion = '3.25.9'
 def protocVersion = protobufVersion
 
 dependencies {
-    implementation 'io.vertx:vertx-grpc-server:4.4.4'
+    implementation 'io.vertx:vertx-grpcio-server:5.2.3'
     implementation "io.grpc:grpc-protobuf:${grpcVersion}"
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"

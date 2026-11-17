@@ -1,7 +1,6 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.0.0"
-    id("io.micronaut.application") version "3.5.3"
-    id("com.google.protobuf") version "0.8.19"
+    id("io.micronaut.application") version "5.0.2"
+    id("com.google.protobuf") version "0.10.1"
 }
 
 version = "0.1"
@@ -12,6 +11,7 @@ repositories {
 }
 
 micronaut {
+    version("5.2.6")
     processing {
         incremental(true)
         annotations("com.example.*")
@@ -19,13 +19,14 @@ micronaut {
 }
 
 dependencies {
-    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut:micronaut-context")
     implementation("io.micronaut.grpc:micronaut-grpc-runtime")
+    implementation("io.micronaut.grpc:micronaut-grpc-server-runtime")
     implementation("javax.annotation:javax.annotation-api")
-    implementation("io.grpc:grpc-protobuf:1.49.0")
-    implementation("io.grpc:grpc-stub:1.49.0")
+    implementation("io.grpc:grpc-protobuf:1.85.1")
+    implementation("io.grpc:grpc-stub:1.85.1")
+    implementation 'io.micronaut:micronaut-inject'
     runtimeOnly("ch.qos.logback:logback-classic")
-    implementation("io.micronaut:micronaut-validation")
 }
 
 
@@ -34,8 +35,8 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("11")
-    targetCompatibility = JavaVersion.toVersion("11")
+    sourceCompatibility = JavaVersion.toVersion("25")
+    targetCompatibility = JavaVersion.toVersion("25")
 }
 
 sourceSets {
@@ -48,9 +49,9 @@ sourceSets {
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:3.21.5" }
+    protoc { artifact = "com.google.protobuf:protoc:3.25.9" }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.49.0" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.85.1" }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }
