@@ -10,8 +10,8 @@ lto = true
 
 [dependencies]
 mimalloc = "0.1"
-ntex = "4.6"
-ntex-grpc = "4.1"
+ntex = "4.10"
+ntex-grpc = "4.2"
 
 [[bin]]
 name = "helloworld-server"

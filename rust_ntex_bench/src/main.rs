@@ -2,7 +2,8 @@ use std::convert::Infallible;
 
 use ntex::io::IoConfig;
 use ntex::util::BytePageSize;
-use ntex::{SharedCfg, server::Server, service::ServiceFactory};
+use ntex::server::{LoadBalancing, Server};
+use ntex::{SharedCfg, service::ServiceFactory};
 use ntex_grpc::server;
 
 mod helloworld;
@@ -20,6 +21,7 @@ impl GreeterServer {
     async fn say_hello(&self, req: HelloRequest) -> HelloReply {
         HelloReply {
             response: req.request,
+            ..Default::default()
         }
     }
 }
@@ -47,13 +49,12 @@ async fn main() -> std::io::Result<()> {
     println!("GreeterServer listening on {addr}");
 
     let cfg = SharedCfg::new("GRPC").add(
-        IoConfig::new()
-            .set_read_size(BytePageSize::Size8, BytePageSize::Size64)
-            .set_write_size(BytePageSize::Size32)
-            .set_write_backpressure(256 * 1024),
+        IoConfig::new().set_write_backpressure(256 * 1024),
     );
 
+    // Each worker accepts connections on its own `SO_REUSEPORT` listener.
     Server::builder()
+        .load_balancing(LoadBalancing::Reuseport)
         .bind("grpc", addr, cfg, async |_| {
             server::GrpcServer::new(GreeterServer)
         })?
