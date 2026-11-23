@@ -49,10 +49,7 @@ async fn main() -> std::io::Result<()> {
     println!("GreeterServer listening on {addr}");
 
     let cfg = SharedCfg::new("GRPC").add(
-        IoConfig::new()
-            .set_read_size(BytePageSize::Size8, BytePageSize::Size64)
-            .set_write_size(BytePageSize::Size8)
-            .set_write_backpressure(256 * 1024),
+        IoConfig::new().set_write_backpressure(256 * 1024),
     );
 
     // Each worker accepts connections on its own `SO_REUSEPORT` listener.

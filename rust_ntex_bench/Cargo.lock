@@ -867,9 +867,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-grpc"
-version = "4.2.0"
+version = "4.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6390dec574844308d5bbfea59450b3061b6a83f8182e48923f8dc6921aad126"
+checksum = "240968c1571dbcdeed12342c49f78983735c71dd900bb26aee85f3bd6e017ad6"
 dependencies = [
  "base64 0.22.1",
  "bitflags",
@@ -901,9 +901,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-h2"
-version = "4.7.0"
+version = "4.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ffde1f575c0250e191a96b45ce6f701b846f7da9373484c0c3fa1b7ff933728"
+checksum = "a9f25b84f03a569d7ffe72fe3433bbb787d805c8796003b60390e63141e26b33"
 dependencies = [
  "bitflags",
  "fastrand",
@@ -989,9 +989,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-net"
-version = "4.12.4"
+version = "4.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77caa6989a875d1227a98c46d1cd2d6111d092bc362994a1028429cfa1cc0951"
+checksum = "0bbea04d7e48617ee2b4c4ee3d0fd168a46e9066f48157148b8bb10caed568e5"
 dependencies = [
  "bitflags",
  "cfg-if",
