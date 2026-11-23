@@ -2,10 +2,10 @@
     "name": "grpc-examples",
     "version": "0.1.0",
     "dependencies": {
-      "@grpc/proto-loader": "^0.7.2",
+      "@grpc/proto-loader": "^0.8.1",
       "async": "^3.2.4",
       "google-protobuf": "^3.21.0",
-      "@grpc/grpc-js": "^1.8.15",
+      "@grpc/grpc-js": "^1.14.7",
       "lodash": "^4.6.1",
       "minimist": "^1.2.0"
     }
