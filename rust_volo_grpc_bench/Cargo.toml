@@ -1,0 +1,23 @@
+[package]
+name = "rust_volo"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[dependencies]
+volo = "0.12.5"
+volo-grpc = "0.12.2"
+pilota = "0.13.1"
+mimalloc = "0.1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
+[build-dependencies]
+volo-build = "0.12.3"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/main.rs"
