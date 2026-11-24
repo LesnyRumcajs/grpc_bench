@@ -1,7 +1,7 @@
 FROM eclipse-temurin:23-jdk-noble
 
 WORKDIR /app
-COPY java_micronaut_bench /app
+COPY java_micronaut_workstealing_bench /app
 COPY proto/helloworld/helloworld.proto /app/src/main/proto/helloworld.proto
 
 RUN /app/gradlew installDist
