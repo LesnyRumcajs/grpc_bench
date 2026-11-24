@@ -950,7 +950,7 @@ dependencies = [
  "hyper",
  "jemallocator",
  "log",
- "prost 0.11.9",
+ "prost 0.14.3",
  "prost-build",
  "thruster",
  "thruster-grpc",
