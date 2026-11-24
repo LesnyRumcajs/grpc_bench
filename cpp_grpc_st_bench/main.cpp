@@ -22,7 +22,7 @@
 #include <thread>
 
 #include <grpcpp/grpcpp.h>
-#include <grpc/support/log.h>
+#include <absl/log/check.h>
 
 #ifdef BAZEL_BUILD
 #include "examples/protos/helloworld.grpc.pb.h"
@@ -109,7 +109,7 @@ class ServerImpl final {
         status_ = FINISH;
         responder_.Finish(reply_, Status::OK, this);
       } else {
-        GPR_ASSERT(status_ == FINISH);
+        CHECK(status_ == FINISH);
         // Once in the FINISH state, deallocate ourselves (CallData).
         delete this;
       }
@@ -151,8 +151,8 @@ class ServerImpl final {
       // memory address of a CallData instance.
       // The return value of Next should always be checked. This return value
       // tells us whether there is any kind of event or cq_ is shutting down.
-      GPR_ASSERT(cq_->Next(&tag, &ok));
-      // GPR_ASSERT(ok);
+      CHECK(cq_->Next(&tag, &ok));
+      // CHECK(ok);
       static_cast<CallData*>(tag)->Proceed();
     }
   }

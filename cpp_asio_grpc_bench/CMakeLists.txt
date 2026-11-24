@@ -6,11 +6,10 @@ project(
   HOMEPAGE_URL https://github.com/Tradias/asio-grpc
   LANGUAGES CXX)
 
-include(FindPkgConfig)
-
-pkg_check_modules(grpc++_unsecure REQUIRED IMPORTED_TARGET grpc++_unsecure)
-pkg_check_modules(protobuf REQUIRED IMPORTED_TARGET protobuf)
-find_package(Boost REQUIRED COMPONENTS coroutine)
+find_package(Protobuf CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS context)
+find_package(asio-grpc CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME})
 
@@ -20,8 +19,8 @@ target_sources(
           "${CMAKE_CURRENT_LIST_DIR}/gen/helloworld.grpc.pb.cc")
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE PkgConfig::grpc++_unsecure PkgConfig::protobuf
-                          Boost::headers Boost::coroutine)
+  ${PROJECT_NAME} PRIVATE asio-grpc::asio-grpc gRPC::grpc++_unsecure protobuf::libprotobuf
+                          Boost::headers Boost::context)
 
 target_include_directories(${PROJECT_NAME}
                            PRIVATE "${CMAKE_CURRENT_LIST_DIR}/gen")
