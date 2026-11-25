@@ -2,7 +2,7 @@ plugins {
     // Provide convenience executables for trying out the examples.
     id 'application'
     // ASSUMES GRADLE 2.12 OR HIGHER. Use plugin version 0.7.5 with earlier gradle versions
-    id 'com.google.protobuf' version '0.8.19'
+    id 'com.google.protobuf' version '0.10.1'
     // Generate IntelliJ IDEA's .idea & .iml project files
     id 'idea'
 }
@@ -14,16 +14,18 @@ repositories {
     mavenLocal()
 }
 
-sourceCompatibility = 17
-targetCompatibility = 17
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 // IMPORTANT: You probably want the non-SNAPSHOT version of gRPC. Make sure you
 // are looking at a tagged version of the example and not "master"!
 
 // Feel free to delete the comment at the next line. It is just for safely
 // updating the version in our release process.
-def grpcVersion = '1.58.0' // CURRENT_GRPC_VERSION
-def protobufVersion = '3.21.7'
+def grpcVersion = '1.85.1' // CURRENT_GRPC_VERSION
+def protobufVersion = '3.25.9'
 def protocVersion = protobufVersion
 
 dependencies {
@@ -60,55 +62,55 @@ sourceSets {
 startScripts.enabled = false
 
 task routeGuideServer(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.routeguide.RouteGuideServer'
+    mainClass = 'io.grpc.examples.routeguide.RouteGuideServer'
     applicationName = 'route-guide-server'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task routeGuideClient(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.routeguide.RouteGuideClient'
+    mainClass = 'io.grpc.examples.routeguide.RouteGuideClient'
     applicationName = 'route-guide-client'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task helloWorldServer(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.helloworld.HelloWorldServer'
+    mainClass = 'io.grpc.examples.helloworld.HelloWorldServer'
     applicationName = 'hello-world-server'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task helloWorldClient(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.helloworld.HelloWorldClient'
+    mainClass = 'io.grpc.examples.helloworld.HelloWorldClient'
     applicationName = 'hello-world-client'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task hedgingHelloWorldServer(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.hedging.HedgingHelloWorldServer'
+    mainClass = 'io.grpc.examples.hedging.HedgingHelloWorldServer'
     applicationName = 'hedging-hello-world-server'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task hedgingHelloWorldClient(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.hedging.HedgingHelloWorldClient'
+    mainClass = 'io.grpc.examples.hedging.HedgingHelloWorldClient'
     applicationName = 'hedging-hello-world-client'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
 task compressingHelloWorldClient(type: CreateStartScripts) {
-    mainClassName = 'io.grpc.examples.experimental.CompressingHelloWorldClient'
+    mainClass = 'io.grpc.examples.experimental.CompressingHelloWorldClient'
     applicationName = 'compressing-hello-world-client'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = startScripts.classpath
 }
 
-applicationDistribution.into('bin') {
+distributions.main.contents.into('bin') {
     from(routeGuideServer)
     from(routeGuideClient)
     from(helloWorldServer)
@@ -116,5 +118,5 @@ applicationDistribution.into('bin') {
     from(hedgingHelloWorldClient)
     from(hedgingHelloWorldServer)
     from(compressingHelloWorldClient)
-    fileMode = 0755
+    filePermissions { unix('rwxr-xr-x') }
 }
